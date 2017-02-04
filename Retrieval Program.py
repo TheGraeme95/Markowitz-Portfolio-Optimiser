@@ -7,7 +7,7 @@ import pandas as pd
 import os
 import time
 from sqlalchemy import create_engine
-import mysql.connector
+import mysql.connector ##conda install mysql-connector-python / pip install mysql-python
 from datetime import date
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -35,6 +35,7 @@ def getAllStocks():
             print(stock)
             print(df)
             df.to_sql(stock, con = engine, schema = dbschema, if_exists = 'replace', index = True)
+        print("All stock data since ",str(start), " successfully retrieved.")
     except Exception as e:
         print("failed getting bulk stock data because",str(e))
 

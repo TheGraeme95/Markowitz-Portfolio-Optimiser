@@ -21,3 +21,4 @@ class Stock:
             
 IBM = Stock('ibm')
 print(IBM.close)
+print(IBM.prices_change(252))

@@ -1,7 +1,7 @@
 import quandl
 from sqlalchemy import create_engine
 from datetime import date
-from apscheduler.schedulers.blocking import BlockingScheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
 
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 
@@ -23,9 +23,11 @@ def getDailyStocks():
             df['Name'] = stock
             print(stock)
             df.to_sql(stock, con = engine, schema = dbschema, if_exists = 'append', index = True)
+        print("All stocks retrieved successfully")
     except Exception as error:
         print("failed getting daily stock data beacuse",str(error))
         
-scheduler = BlockingScheduler()
-scheduler.add_job(getDailyStocks, 'cron', hour = 23)
-scheduler.start()
+#scheduler = BlockingScheduler()
+#scheduler.add_job(getDailyStocks, 'cron', hour = 23)
+#scheduler.start()
+getDailyStocks()
