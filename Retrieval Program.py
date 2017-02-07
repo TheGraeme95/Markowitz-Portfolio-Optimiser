@@ -22,7 +22,7 @@ daily = date.today()
 end = daily.replace(day=daily.day-1)
 daily = daily.replace(day=daily.day)
 
-stocklist = ['ibm','aapl','msft','googl']
+stocklist = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'lnkd', 'tsla', 'atvi']
 engine = create_engine('mysql+mysqlconnector://TheGraeme95:machinelearning1@stockdatadb.czl4fjyxavu7.eu-west-1.rds.amazonaws.com:3306/Stockdata')
 
 ## Get all stocks from start date
