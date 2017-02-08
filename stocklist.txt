@@ -1,0 +1,15 @@
+ibm
+aapl
+msft
+googl
+fb
+yhoo
+csco
+intc
+amzn
+ebay
+orcl
+nflx
+lnkd
+tsla
+atvi
