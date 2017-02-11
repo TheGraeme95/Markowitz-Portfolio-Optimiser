@@ -19,7 +19,7 @@ start = '2010-01-01'
 
 dbschema = 'Stockdata'
 daily = date.today()
-end = daily.replace(day=daily.day-1)
+end = daily.replace(day=daily.day)
 daily = daily.replace(day=daily.day)
 
 stocklist = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'lnkd', 'tsla', 'atvi']

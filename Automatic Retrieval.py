@@ -21,6 +21,7 @@ def getDailyStocks():
             df = quandl.get("WIKI/"+ stock, trim_start = yesterday, authtoken = token)
             df['Name'] = stock
             print(stock)
+            print(df)
             df.to_sql(stock, con = engine, schema = dbschema, if_exists = 'append', index = True)
         print("All stocks retrieved successfully")
     except Exception as error:
