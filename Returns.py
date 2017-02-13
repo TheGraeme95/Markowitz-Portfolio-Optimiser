@@ -16,26 +16,36 @@ class Stock:
             self.name = name
             self.Data = pd.read_sql_table(name, con = engine, schema = dbSchema, index_col = 'Date')                       
         except Exception as e:
-            print("Not a valid stock name in the WIKI dataset.", str(e))
+            print("Not a an available stock from the list.", str(e))
             
-def calculateReturn(Stock):
+def calculateStats(Stock):
     try:
-        returns = Stock.Data['Adj. Close'].tail(252*5).pct_change(1)
-        print(returns)
-        historicalReturn = ((1/(252*5))*(returns.sum(axis = 0)))
-        print("The historical return for the last 5 years",Stock.name,"is",historicalReturn,"%")
+        stockYears = int(input("How many years of data would you like to use? (1-5)\n"))
+        returns = Stock.Data['Adj. Close'].tail(252*stockYears).pct_change(1)
+        returns.loc[:,] *= 100
+        print(returns,"\n")
+        averageReturn = numpy.mean(returns)
+        stockVariance = numpy.var(returns)
+        stockSD = numpy.std(returns)
+        print(Stock.name,"using last",stockYears,"years of data:")
+        print("Average Daily Return:",averageReturn,"%")
+        print("Standard Deviation:", stockSD)
+        print("Variance:",stockVariance,"%")
+        plt.plot(returns)
     except Exception as e:
         print(e)
             
-#IBM = Stock('ibm')
-#IBMprices = IBM.close.pct_change(1)
-#print(IBMprices)
-#(IBM.Data['Adj. Close'].pct_change(1))
+#def calculateCovariance(Stock, Stock):
+#    try:
+#                                
+#    except Exception as e:
+#        print(e)
 
+        
 input1 = input("Which stock would you like to look at?\n")
 print("Loading",input1, "data..\n")
 chosenStock = Stock(input1)
-calculateReturn(chosenStock)
+calculateStats(chosenStock)
 
 
 
