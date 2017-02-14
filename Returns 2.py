@@ -20,14 +20,28 @@ class Stock:
             
     def dailyReturns(self, years):
         try:
-            self.returns = self.Data['Adj. Close'].tail(252*years).pct_change(1)
-            returns.loc[:,] *= 100
-            return returns
+            self.years = years
+            self.returns = self.Data['Adj. Close'].tail(252*self.years).pct_change(1)            
+            self.returns.loc[:,] *= 100
+            self.average = numpy.mean(self.returns)
+            self.variance = numpy.var(self.returns)
+            self.SD = numpy.std(self.returns)
+            return self.returns
         except Exception as e:
             print(e)
+            
+    def displayStats(self):
+        try:
+            print(self.name,"using the last",self.years,"years of data:")
+            print("Average Daily Return:", self.average,"%")
+            print("Standard Deviation:", self.SD,"%")
+            print("Variance:",self.variance,"%")
+        except Exception as e:
+            print(e)
+            
 
-    def averageReturn()
             
 print("List of available stocks:\n",stockList)
 chosenStock = Stock(input("Which stock would you like to look at?\n"))
 print(chosenStock.dailyReturns(1))
+chosenStock.displayStats()
