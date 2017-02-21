@@ -61,6 +61,24 @@ def plotReturns():
     except Exception as e:
         print(e)
 
+def plotMeanVar():
+    try:
+        x = []
+        y = []
+        fig, ax = plt.subplots()
+        for ticker in stockList:
+            temp = Stock(ticker)
+            x.append(temp.SD)
+            y.append(temp.average)
+        ax.scatter(x,y)
+        
+        for i, txt in enumerate(stockList):
+            ax.annotate(txt, (x[i],y[i]))
+    except Exception as e:
+        print(e)
+
+            
+
 def covarianceMatrix():
     try:
         my_stocks = pd.DataFrame([])
@@ -140,22 +158,28 @@ def portfolioOpt2():
 
 def portfolioOpt3():
     n = int(len(stockList))
-    covM = cv.matrix(covarianceMatrix())
-    
+    covM = covarianceMatrix()
     S = cv.matrix(covM)
     pbar = cv.matrix(testMatrix)
     
     G  = -cv.matrix(numpy.eye(n))
     h = cv.matrix(0.0, (n, 1))
     
-    ## Ax = b constraint for weighting sum = 1
+    ## Ax = b constraint for weighting sum = 1 Lagrange multiplier
     A = cv.matrix(1.0, (1, n))
     b = cv.matrix(1.0)
     
-    solution = cv.solvers.qp(S, -pbar, G, h, A, b)['x']
-    return solution
-print(meanReturns())
-print(portfolioOpt3())
+    solution = numpy.array(cv.solvers.qp(S, -pbar, G, h, A, b)['x'])
+    print(solution)
+    portfolioReturn = testMatrix.T * solution
+    print('Portfolio Return:', portfolioReturn.sum(),'%')
+    portfolioVariance = numpy.sum((numpy.dot(solution.T, covM) * solution), dtype = float)
+    print('Portfolio Variance:', portfolioVariance,'%')
+    #return solution, portfolioReturn, portfolioVariance
+
+#print(meanReturns())
+#portfolioOpt3()
+plotMeanVar()
 
 #https://datanitro.com/blog/mean-variance-optimization
 #http://nbviewer.jupyter.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb
