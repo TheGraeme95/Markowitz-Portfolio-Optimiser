@@ -8,19 +8,20 @@ import quandl
 import cvxopt as cv
 
 
-stockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+tempStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
 dbSchema = 'Stockdata'
 
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 token = 'p_qounXgMs57T9nYAurW'
 start = '2014-01-01'
 
+
 class Stock:
     def __init__(self,name):
         try:
-            self.name = name
+            self.name = name            
             self.Data = quandl.get("WIKI/"+ name, trim_start = start, authtoken = token)
-            tempReturns = pd.DataFrame(numpy.log(1 + self.Data['Adj. Close'].tail(252*3).pct_change(1)))
+            tempReturns = pd.DataFrame(numpy.log(1 + self.Data['Adj. Close'].pct_change(1)))
             tempReturns = tempReturns.rename(columns = {'Adj. Close' : self.name})
             self.returns = tempReturns.fillna(value = 0)
             #self.returns.loc[:,] *= 100
@@ -38,12 +39,15 @@ class Stock:
             print("Variance:",self.variance,"%")
         except Exception as e:
             print(e)
-            
+ 
+stockList = {name: Stock(name=name) for name in tempStockList}
+
+           
 def plotStocks():
     try:
         my_stocks = pd.DataFrame([])
-        for ticker in stockList:
-            tempDF = pd.DataFrame({ticker:Stock(ticker).Data['Adj. Close'].tail(252*3)})
+        for ticker in tempStockList:
+            tempDF = pd.DataFrame({ticker:stockList[ticker].Data['Adj. Close']})
             my_stocks = pd.concat([my_stocks,tempDF], axis = 1)
         print(my_stocks)
         my_stocks.plot(grid = True)
@@ -53,9 +57,15 @@ def plotStocks():
 def plotReturns():
     try:
         my_stocks = pd.DataFrame([])
-        for ticker in stockList:
-            tempDF = pd.DataFrame(Stock(ticker).returns)            
-            my_stocks = pd.concat([my_stocks, tempDF],axis = 1)
+        for ticker in tempStockList:
+            tempDF = pd.DataFrame(stockList[ticker].returns)
+            if my_stocks.empty:
+                my_stocks = tempDF
+            else:
+                my_stocks = my_stocks.join(tempDF, how='outer')
+            tempDF = pd.DataFrame(stockList[ticker].returns)
+            #print(tempDF)
+            #my_stocks = pd.concat([my_stocks, tempDF],axis = 1)
         print(my_stocks)
         my_stocks.plot(grid = True)        
     except Exception as e:
@@ -85,8 +95,25 @@ def meanReturns():
     except Exception as e:
         print(e)
         
+def random_weights(n):
+    k = numpy.random.rand(n)
+    return k / sum(k)
 
-        
+def random_portfolio(returns):
+    p = numpy.asmatrix(testMatrix)
+    w = numpy.asmatrix(random_weights(returns.shape[0]))
+    C = numpy.asmatrix(covarianceMatrix())
+    
+    mu = w * p.T
+    sigma = numpy.sqrt(w * C * w.T)
+    
+    if sigma > 2:
+        return random_portfolio(returns)
+    return mu, sigma
+
+  
+
+      
 testMatrix = numpy.asarray(meanReturns()[0])
 
 def portfolioOpt1():
@@ -154,8 +181,22 @@ def portfolioOpt3():
     
     solution = cv.solvers.qp(S, -pbar, G, h, A, b)['x']
     return solution
-print(meanReturns())
-print(portfolioOpt3())
+
+#n_portfolios = 500
+#means, stds = numpy.column_stack([
+#    random_portfolio(testMatrix) 
+#    for _ in range(n_portfolios)])
+#
+#plt.plot(stds, means, 'o', markersize=5)
+#plt.xlabel('std')
+#plt.ylabel('mean')
+#plt.title('Mean and standard deviation of returns of randomly generated portfolios')
+
+
+#plotStocks()
+plotReturns()
+#print(stockList['ibm'].returns)
+
 
 #https://datanitro.com/blog/mean-variance-optimization
 #http://nbviewer.jupyter.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb
