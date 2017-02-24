@@ -21,15 +21,16 @@ class Stock:
         try:
             self.name = name            
             self.Data = quandl.get("WIKI/"+ name, trim_start = start, authtoken = token)
-            tempReturns = pd.DataFrame(numpy.log(1 + self.Data['Adj. Close'].pct_change(1)))
+            tempAdj = pd.DataFrame(self.Data['Adj. Close'])
+            tempReturns = tempAdj.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
             tempReturns = tempReturns.rename(columns = {'Adj. Close' : self.name})
-            self.returns = tempReturns.fillna(value = 0)
-            #self.returns.loc[:,] *= 100
+            tempReturns = tempReturns.fillna(value = 0)
+            self.returns = tempReturns
             self.average = numpy.mean(self.returns)
             self.variance = numpy.var(self.returns)
             self.SD = numpy.std(self.returns)            
         except Exception as e:
-            print("Not a an available stock from the list.", str(e))
+            print(e)
             
     def displayStats(self):
         try:
@@ -76,13 +77,12 @@ def plotMeanVar():
         x = []
         y = []
         fig, ax = plt.subplots()
-        for ticker in stockList:
-            temp = Stock(ticker)
-            x.append(temp.SD)
-            y.append(temp.average)
+        for ticker in tempStockList:            
+            x.append(stockList[ticker].SD)
+            y.append(stockList[ticker].average)
         ax.scatter(x,y)
         
-        for i, txt in enumerate(stockList):
+        for i, txt in enumerate(tempStockList):
             ax.annotate(txt, (x[i],y[i]))
     except Exception as e:
         print(e)
@@ -92,8 +92,8 @@ def plotMeanVar():
 def covarianceMatrix():
     try:
         my_stocks = pd.DataFrame([])
-        for ticker in stockList:
-            tempDF = pd.DataFrame(Stock(ticker).returns)                    
+        for ticker in tempStockList:
+            tempDF = pd.DataFrame(stockList[ticker].returns)                    
             my_stocks = pd.concat([my_stocks,tempDF], axis = 1)
             my_stocks = my_stocks.fillna(value = 0)                                                             
         covMatrix = numpy.cov(my_stocks, rowvar = False)               
@@ -106,9 +106,8 @@ def covarianceMatrix():
 def meanReturns():
     try:
         mean_returns = pd.DataFrame([])
-        for ticker in stockList:
-            ticker = Stock(ticker)
-            mean_returns = pd.concat([mean_returns, ticker.average])        
+        for ticker in tempStockList:            
+            mean_returns = pd.concat([mean_returns, stockList[ticker].average])        
         return mean_returns        
     except Exception as e:
         print(e)
@@ -196,11 +195,10 @@ def portfolioOpt3():
     A = cv.matrix(1.0, (1, n))
     b = cv.matrix(1.0)
     
-<<<<<<< HEAD
     solution = cv.solvers.qp(S, -pbar, G, h, A, b)['x']
     return solution
 
-#n_portfolios = 500
+#n_portfolios = 1000
 #means, stds = numpy.column_stack([
 #    random_portfolio(testMatrix) 
 #    for _ in range(n_portfolios)])
@@ -209,25 +207,17 @@ def portfolioOpt3():
 #plt.xlabel('std')
 #plt.ylabel('mean')
 #plt.title('Mean and standard deviation of returns of randomly generated portfolios')
-
-
-#plotStocks()
+plotStocks()
 plotReturns()
-#print(stockList['ibm'].returns)
 
-=======
-    solution = numpy.array(cv.solvers.qp(S, -pbar, G, h, A, b)['x'])
-    print(solution)
-    portfolioReturn = testMatrix.T * solution
-    print('Portfolio Return:', portfolioReturn.sum(),'%')
-    portfolioVariance = numpy.sum((numpy.dot(solution.T, covM) * solution), dtype = float)
-    print('Portfolio Variance:', portfolioVariance,'%')
-    #return solution, portfolioReturn, portfolioVariance
+#solution = numpy.array(cv.solvers.qp(S, -pbar, G, h, A, b)['x'])
+#print(solution)
+#portfolioReturn = testMatrix.T * solution
+#print('Portfolio Return:', portfolioReturn.sum(),'%')
+#portfolioVariance = numpy.sum((numpy.dot(solution.T, covM) * solution), dtype = float)
+#print('Portfolio Variance:', portfolioVariance,'%')
+##return solution, portfolioReturn, portfolioVariance
 
-#print(meanReturns())
-#portfolioOpt3()
-plotMeanVar()
->>>>>>> origin/master
 
 #https://datanitro.com/blog/mean-variance-optimization
 #http://nbviewer.jupyter.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb
