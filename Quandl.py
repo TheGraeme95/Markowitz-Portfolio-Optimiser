@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 import quandl
 import cvxopt as cv
+from cvxopt import blas
 
+#tempStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+tempStockList = ['ibm','aapl','msft','googl']
 
-tempStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
 dbSchema = 'Stockdata'
-
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 token = 'p_qounXgMs57T9nYAurW'
-start = '2014-01-01'
-
+start = '2015-01-01'
 
 class Stock:
     def __init__(self,name):
@@ -42,7 +42,6 @@ class Stock:
             print(e)
  
 stockList = {name: Stock(name=name) for name in tempStockList}
-
            
 def plotStocks():
     try:
@@ -63,8 +62,7 @@ def plotReturns():
             if my_stocks.empty:
                 my_stocks = tempDF
             else:
-                my_stocks = my_stocks.join(tempDF, how='outer')
-            tempDF = pd.DataFrame(stockList[ticker].returns)
+                my_stocks = my_stocks.join(tempDF, how='outer')            
             #print(tempDF)
             #my_stocks = pd.concat([my_stocks, tempDF],axis = 1)
         print(my_stocks)
@@ -88,7 +86,6 @@ def plotMeanVar():
         print(e)
 
             
-
 def covarianceMatrix():
     try:
         my_stocks = pd.DataFrame([])
@@ -96,7 +93,7 @@ def covarianceMatrix():
             tempDF = pd.DataFrame(stockList[ticker].returns)                    
             my_stocks = pd.concat([my_stocks,tempDF], axis = 1)
             my_stocks = my_stocks.fillna(value = 0)                                                             
-        covMatrix = numpy.cov(my_stocks, rowvar = False)               
+        covMatrix = numpy.cov(my_stocks.T)               
         #plt.imshow(covMatrix)
         #plt.show()
         return covMatrix
@@ -116,10 +113,11 @@ def random_weights(n):
     k = numpy.random.rand(n)
     return k / sum(k)
 
+
 def random_portfolio(returns):
-    p = numpy.asmatrix(testMatrix)
+    p = numpy.asmatrix(meansMatrix)
     w = numpy.asmatrix(random_weights(returns.shape[0]))
-    C = numpy.asmatrix(covarianceMatrix())
+    C = numpy.asmatrix(CovMatrix)
     
     mu = w * p.T
     sigma = numpy.sqrt(w * C * w.T)
@@ -128,96 +126,89 @@ def random_portfolio(returns):
         return random_portfolio(returns)
     return mu, sigma
 
-  
 
-      
-testMatrix = numpy.asarray(meanReturns()[0])
+def plotRandomPortfolios(n):
+    n_portfolios = n
+    print('Generating',n_portfolios,'random portfolios')
+    means, stds = numpy.column_stack([
+        random_portfolio(meansMatrix) 
+        for _ in range(n_portfolios)])
+    
+    plt.plot(stds, means, 'o', markersize=5)
+    plt.xlabel('std')
+    plt.ylabel('mean')
+    plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
-def portfolioOpt1():
-    r_min = 0.005
-    covM = cv.matrix(covarianceMatrix())
-    meanR = cv.matrix(testMatrix)
-    n = int(len(stockList))
-    P = covM
-    q = cv.matrix(numpy.zeros(shape = (n,1)))
+def convert_portfolios(portfolios):
+    ''' Takes in a cvxopt matrix of portfolios, returns a list of portfolios '''
+    port_list = []
+    for portfolio in portfolios:
+        temp = numpy.array(portfolio).T
+        port_list.append(temp[0].tolist())
+        
+    return port_list
+
+def efficientFrontier(inputReturns):
+    n = len(inputReturns)
+    returns = numpy.asmatrix(inputReturns)
     
-    G = cv.matrix(numpy.concatenate((
-                 -numpy.transpose(numpy.array(meanR)), 
-                 -numpy.identity(n)), 0))
+    print("\n RETURNS",returns)
+    print("\n N",n)
+
+    N = 100
+    mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
     
-    h = cv.matrix(numpy.concatenate((
-                 -numpy.ones((1,1))*r_min, 
-                  numpy.zeros((n,1))), 0))
+    S = cv.matrix(numpy.cov(returns))
+    pbar = cv.matrix(numpy.mean(returns, axis = 1))
     
+        
+    G = -cv.matrix(numpy.eye(n))
+    h = cv.matrix(0.0, (n,1))
     A = cv.matrix(1.0, (1,n))
     b = cv.matrix(1.0)
     
-    sol = cv.solvers.qp(P, q, G, h, A, b)
-    print(sol['x'])
-
-def portfolioOpt2():
-    r_min = 0.005
-    covM = cv.matrix(covarianceMatrix())
-    meanR = cv.matrix(testMatrix)
-    n = int(len(stockList))
-    P = covM
-    q = cv.matrix(numpy.zeros(shape = (n,1)))
+    portfolios = [cv.solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
     
-    G = cv.matrix(numpy.concatenate((
-                 -numpy.transpose(numpy.array(meanR)), 
-                 -numpy.identity(n)), 0))
+    port_list = convert_portfolios(portfolios)
     
-    h = cv.matrix(numpy.concatenate((
-                 -numpy.ones((1,1))*r_min, 
-                  numpy.zeros((n,1))), 0))
     
-    A = cv.matrix(1.0, (1,n))
-    b = cv.matrix(1.0)
-    
-    sol = cv.solvers.qp(P, q, G, h, A, b)
-    print(sol['x'])
+    ## CALCULATE RISKS AND RETURNS FOR FRONTIER
+    returns = [blas.dot(pbar, x) for x in portfolios]    
+    risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] #np.sqrt returns the stdev, not variance
+   
+    ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
+    m1 = numpy.polyfit(returns, risks, 2)    
+    x1 = (numpy.sqrt(m1[2] / m1[0]))    
+    # CALCULATE THE OPTIMAL PORTFOLIO
+    wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?  
+
+    return numpy.asarray(wt), returns, risks, port_list
+
+
+stockList = {name: Stock(name=name) for name in tempStockList}
+
+CovMatrix = covarianceMatrix()
+meansMatrix = numpy.asarray(meanReturns()[0])
 
 
 
+my_stocks = pd.DataFrame([])
+for ticker in tempStockList:
+    tempDF = pd.DataFrame(stockList[ticker].returns)
+    if my_stocks.empty:
+        my_stocks = tempDF
+    else:
+        my_stocks = my_stocks.join(tempDF, how='outer')
+            
+my_stocks = my_stocks.T
+plotRandomPortfolios(20000)
 
+weights, returns, risks, portlist = efficientFrontier(my_stocks)
+plt.ylabel('mean')
+plt.xlabel('std')
+plt.plot(risks, returns, 'r-o')
 
-
-def portfolioOpt3():
-    n = int(len(stockList))
-    covM = covarianceMatrix()
-    S = cv.matrix(covM)
-    pbar = cv.matrix(testMatrix)
-    
-    G  = -cv.matrix(numpy.eye(n))
-    h = cv.matrix(0.0, (n, 1))
-    
-    ## Ax = b constraint for weighting sum = 1 Lagrange multiplier
-    A = cv.matrix(1.0, (1, n))
-    b = cv.matrix(1.0)
-    
-    solution = cv.solvers.qp(S, -pbar, G, h, A, b)['x']
-    return solution
-
-#n_portfolios = 1000
-#means, stds = numpy.column_stack([
-#    random_portfolio(testMatrix) 
-#    for _ in range(n_portfolios)])
-#
-#plt.plot(stds, means, 'o', markersize=5)
-#plt.xlabel('std')
-#plt.ylabel('mean')
-#plt.title('Mean and standard deviation of returns of randomly generated portfolios')
-plotStocks()
-plotReturns()
-
-#solution = numpy.array(cv.solvers.qp(S, -pbar, G, h, A, b)['x'])
-#print(solution)
-#portfolioReturn = testMatrix.T * solution
-#print('Portfolio Return:', portfolioReturn.sum(),'%')
-#portfolioVariance = numpy.sum((numpy.dot(solution.T, covM) * solution), dtype = float)
-#print('Portfolio Variance:', portfolioVariance,'%')
-##return solution, portfolioReturn, portfolioVariance
-
-
+minIndex = risks.index(min(risks))
+plt.plot(risks[minIndex],returns[minIndex], 'o')
 #https://datanitro.com/blog/mean-variance-optimization
 #http://nbviewer.jupyter.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb
