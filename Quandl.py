@@ -109,6 +109,8 @@ def meanReturns():
     except Exception as e:
         print(e)
         
+
+        
 def random_weights(n):
     k = numpy.random.rand(n)
     return k / sum(k)
@@ -199,8 +201,9 @@ for ticker in tempStockList:
         my_stocks = tempDF
     else:
         my_stocks = my_stocks.join(tempDF, how='outer')
-            
+print(my_stocks)            
 my_stocks = my_stocks.T
+print(my_stocks)
 plotRandomPortfolios(20000)
 
 weights, returns, risks, portlist = efficientFrontier(my_stocks)
@@ -208,7 +211,13 @@ plt.ylabel('mean')
 plt.xlabel('std')
 plt.plot(risks, returns, 'r-o')
 
-minIndex = risks.index(min(risks))
-plt.plot(risks[minIndex],returns[minIndex], 'o')
+#minIndex = risks.index(min(risks))
+#plt.plot(risks[minIndex],returns[minIndex], 'o')
+
+print(weights)
+optrisk = numpy.sqrt(blas.dot(cv.matrix(weights), cv.matrix(CovMatrix)*cv.matrix(weights)))
+optreturn = blas.dot(cv.matrix(numpy.mean(my_stocks, axis = 1)), cv.matrix(weights))
+plt.plot(optrisk,optreturn, 'o')
+
 #https://datanitro.com/blog/mean-variance-optimization
 #http://nbviewer.jupyter.org/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb
