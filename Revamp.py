@@ -122,7 +122,41 @@ class Portfolio:
 
         solution = cv.solvers.qp(P,q,G,h,A,b)['x']
         self.weights = solution
-
+        
+     
+    def maxRet(self):
+        n = len(self.returns)
+        P = self.covarianceMatrix
+        q = self.average
+        
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        solution = cv.solvers.qp(P, -q, G, h, A, b)['x']
+        self.weights = solution
+    
+    def givenRet(self, r_min):
+        n = len(self.returns)
+        
+        P = self.covarianceMatrix
+        q = cv.matrix(numpy.zeros((n, 1)))
+        
+        G = cv.matrix(numpy.concatenate((
+		-numpy.transpose(numpy.array(self.average)), 
+		-numpy.identity(n)), 0))
+        
+        h = cv.matrix(numpy.concatenate((
+		-numpy.ones((1,1))*r_min, 
+		numpy.zeros((n,1))), 0))
+        
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        solution = cv.solvers.qp(P, q, G, h, A, b)['x']
+        self.weights = solution
+    
 def random_weights(n):
     k = numpy.random.rand(n)
     return k / sum(k)
@@ -154,7 +188,7 @@ def plotRandomPortfolios(n, portfolio):
 portfolio1 = Portfolio(chosenStocks)
 plotRandomPortfolios(20000, portfolio1)
 portfolio1.portPlot()
-portfolio1.minVariance()
+portfolio1.maxRet()
 portfolio1.calcReturn()
 portfolio1.calcRisk()
 
