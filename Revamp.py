@@ -156,6 +156,10 @@ class Portfolio:
         
         solution = cv.solvers.qp(P, q, G, h, A, b)['x']
         self.weights = solution
+        
+    
+    ##sharp ratio, use randomly generated portfolios and pick one closest to risk preference
+    
     
 def random_weights(n):
     k = numpy.random.rand(n)
@@ -188,7 +192,7 @@ def plotRandomPortfolios(n, portfolio):
 portfolio1 = Portfolio(chosenStocks)
 plotRandomPortfolios(20000, portfolio1)
 portfolio1.portPlot()
-portfolio1.maxRet()
+portfolio1.maxSharpe()
 portfolio1.calcReturn()
 portfolio1.calcRisk()
 
