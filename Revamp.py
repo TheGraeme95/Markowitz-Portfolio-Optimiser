@@ -158,7 +158,39 @@ class Portfolio:
         self.weights = solution
         
     
-    ##sharp ratio, use randomly generated portfolios and pick one closest to risk preference
+    def personalPort(self, riskAv):
+        n = len(self.returns)
+        
+        returns = numpy.asmatrix(self.returns)
+        N = 100
+        mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+
+        P = self.covarianceMatrix
+        q = self.average
+        
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        portfolios = [cv.solvers.qp(mu*P, -q, G, h, A, b)['x'] for mu in mus]
+        
+        tempReturns = [blas.dot(q, x) for x in portfolios]
+        tempRisks = [numpy.sqrt(blas.dot(x, P*x)) for x in portfolios]
+        
+        utilitys = []
+        
+        for i, n in enumerate(tempReturns):            
+            utilitys.append((tempReturns[i] - (0.5 * riskAv * tempRisks[i]**2)))
+            
+        maxIndex = utilitys.index(max(utilitys))
+        solution = portfolios[maxIndex]
+        print(solution)
+        self.weights = solution
+            
+        
+    
+    
     
     
 def random_weights(n):
@@ -192,7 +224,7 @@ def plotRandomPortfolios(n, portfolio):
 portfolio1 = Portfolio(chosenStocks)
 plotRandomPortfolios(20000, portfolio1)
 portfolio1.portPlot()
-portfolio1.maxSharpe()
+portfolio1.personalPort(8)
 portfolio1.calcReturn()
 portfolio1.calcRisk()
 
