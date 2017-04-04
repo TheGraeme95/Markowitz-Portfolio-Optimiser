@@ -8,20 +8,31 @@ import quandl
 import cvxopt as cv
 from cvxopt import blas
 
-availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
-
-
+cv.solvers.options['show_progress'] = False
 dbSchema = 'Stockdata'
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 token = 'p_qounXgMs57T9nYAurW'
 start = '2015-01-01'
 
+availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+tempAvailableStockList = ['ibm', 'aapl', 'msft', 'googl']
+
+allData = pd.DataFrame([])
+for stock in tempAvailableStockList:
+    fullHolder = pd.DataFrame(quandl.get("WIKI/"+stock, trim_start = start, authtoken = token))
+    closeHolder = pd.DataFrame(fullHolder['Adj. Close'])
+    closeHolder.columns = [stock]
+    if allData.empty:
+        allData = closeHolder
+    else:
+        allData = allData.join(closeHolder, how='outer')
+
 class Stock:
     def __init__(self,name):
         try:
             self.name = name
-            self.Data = quandl.get("WIKI/"+ name, trim_start = start, authtoken = token)
-            tempAdj = pd.DataFrame(self.Data['Adj. Close'])
+            self.Data = pd.DataFrame(allData[name])
+            tempAdj = self.Data
             tempReturns = tempAdj.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
             tempReturns = tempReturns.rename(columns = {'Adj. Close' : self.name})
             tempReturns = tempReturns.fillna(value = 0)
@@ -189,10 +200,8 @@ class Portfolio:
             
         maxIndex = utilitys.index(max(utilitys))
         solution = portfolios[maxIndex]
-        print(solution)
         self.weights = solution
-            
-        
+              
     
     
     
@@ -203,7 +212,7 @@ def random_weights(n):
 
 def random_portfolio(portfolio):
     p = numpy.asmatrix(portfolio.average.T)
-    w = numpy.asmatrix(random_weights(numpy.asmatrix(portfolio1.average.T).shape[1]))
+    w = numpy.asmatrix(random_weights(numpy.asmatrix(portfolio.average.T).shape[1]))
     C = numpy.asmatrix(portfolio.covarianceMatrix)
     
     mu = w * p.T
@@ -226,12 +235,16 @@ def plotRandomPortfolios(n, portfolio):
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
 portfolio1 = Portfolio(chosenStocks)
-#plotRandomPortfolios(20000, portfolio1)
+plotRandomPortfolios(20000, portfolio1)
+portfolio1.portPlot()
+portfolio1.displayStocks()
+
 #portfolio1.efficientFrontier()
 
-#portfolio1.portPlot()
-portfolio1.personalPort(3)
+portfolio1.personalPort(1)
+#portfolio1.minVariance()
+#portfolio1.displayStocks()
+portfolio1.calcReturn()
+portfolio1.calcRisk()
 portfolio1.displayStocks()
-#portfolio1.calcReturn()
-#portfolio1.calcRisk()
-#portfolio1.portPlot()
+portfolio1.portPlot()

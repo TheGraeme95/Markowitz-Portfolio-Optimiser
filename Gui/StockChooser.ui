@@ -17,7 +17,17 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Choose what stocks to add to portfolio</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListWidget" name="choiceList"/>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
