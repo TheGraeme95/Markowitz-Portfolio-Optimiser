@@ -26,24 +26,6 @@
    <string>Portfolio Optimiser</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>239</y>
-      <width>961</width>
-      <height>351</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QGraphicsView" name="graphicsView_2"/>
-     </item>
-     <item>
-      <widget class="QGraphicsView" name="graphicsView"/>
-     </item>
-    </layout>
-   </widget>
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
@@ -54,6 +36,16 @@
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Portfolio Details</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QTextBrowser" name="textBrowser_2"/>
      </item>
@@ -156,6 +148,44 @@
      </item>
     </layout>
    </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>240</y>
+      <width>961</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QGraphicsView" name="graphicsView_2"/>
+     </item>
+     <item row="1" column="1">
+      <widget class="QGraphicsView" name="graphicsView"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Efficient Frontier</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Portfolio Weightings</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -176,8 +206,8 @@
     <property name="title">
      <string>Stocks</string>
     </property>
-    <addaction name="actionPlot_Stocks"/>
-    <addaction name="actionView_Stocks"/>
+    <addaction name="actionStock_Performance"/>
+    <addaction name="actionStock_Analysis"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -185,6 +215,13 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionClose"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuPortfolio"/>
    <addaction name="menuStocks"/>
    <addaction name="menuAbout"/>
@@ -195,19 +232,24 @@
     <string>Choose Stocks</string>
    </property>
   </action>
-  <action name="actionPlot_Stocks">
+  <action name="actionStock_Performance">
    <property name="text">
     <string>All Stock Performance</string>
    </property>
   </action>
-  <action name="actionView_Stocks">
+  <action name="actionStock_Analysis">
    <property name="text">
-    <string>Stock Data</string>
+    <string>Stock Analysis</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>Close</string>
    </property>
   </action>
  </widget>

@@ -19,6 +19,13 @@
      <item>
       <widget class="QListWidget" name="listWidget"/>
      </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Save and Close</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
