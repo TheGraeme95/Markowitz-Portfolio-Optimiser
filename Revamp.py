@@ -48,8 +48,8 @@ class Portfolio:
     def __init__(self, stockList):
         try:
             self.stocks = stockList
+            self.stockNames = chosenStockList
             self.weights = cv.matrix([1.0/len(self.stocks) for stock in self.stocks])
-
             my_stocks = pd.DataFrame([])
             for stock in self.stocks:
                 tempDF = pd.DataFrame(self.stocks[stock].returns)
@@ -71,7 +71,11 @@ class Portfolio:
     def calcRisk(self):
         self.risk = numpy.sqrt(blas.dot(self.weights, self.covarianceMatrix * self.weights))
 
-
+    
+    def displayStocks(self):
+        for x in range(len(self.stocks)):
+            print('{0}: {1}'.format(self.stockNames[x], self.weights[x]))
+    
     def portPlot(self):
         plt.ylabel('mean')
         plt.xlabel('std')
@@ -222,10 +226,12 @@ def plotRandomPortfolios(n, portfolio):
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
 portfolio1 = Portfolio(chosenStocks)
-plotRandomPortfolios(20000, portfolio1)
-portfolio1.portPlot()
-portfolio1.personalPort(8)
-portfolio1.calcReturn()
-portfolio1.calcRisk()
+#plotRandomPortfolios(20000, portfolio1)
+#portfolio1.efficientFrontier()
 
-portfolio1.portPlot()
+#portfolio1.portPlot()
+portfolio1.personalPort(3)
+portfolio1.displayStocks()
+#portfolio1.calcReturn()
+#portfolio1.calcRisk()
+#portfolio1.portPlot()
