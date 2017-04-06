@@ -1,15 +1,72 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, qApp, QWidget, QListWidget, QListWidgetItem
 from PyQt5 import uic, QtCore, QtGui
- 
+import pyqtgraph as pg
+import numpy
+import pandas as pd
+import quandl
+import cvxopt as cv
+from cvxopt import blas
 
-availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+cv.solvers.options['show_progress'] = False
+dbSchema = 'Stockdata'
+quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
+token = 'p_qounXgMs57T9nYAurW'
+start = '2015-01-01'
+
+# Initialising all available stock data
+
+#availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+availableStockList = ['ibm','aapl','msft','googl']
+
+allData = pd.DataFrame([])
+for stock in availableStockList:
+    fullHolder = pd.DataFrame(quandl.get("WIKI/"+stock, trim_start = start, authtoken = token))
+    closeHolder = pd.DataFrame(fullHolder['Adj. Close'])
+    closeHolder.columns = [stock]
+    if allData.empty:
+        allData = closeHolder
+    else:
+        allData = allData.join(closeHolder, how='outer')
+        
+
+class Stock:
+    def __init__(self,name):
+        try:
+            self.name = name
+            self.Data = pd.DataFrame(allData[name])
+            tempAdj = self.Data
+            tempReturns = tempAdj.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
+            tempReturns = tempReturns.rename(columns = {'Adj. Close' : self.name})
+            tempReturns = tempReturns.fillna(value = 0)
+            self.returns = tempReturns
+            self.average = numpy.mean(self.returns)
+            self.variance = numpy.var(self.returns)
+            self.SD = numpy.std(self.returns)
+        except Exception as e:
+            print(e)
+
+    def displayStats(self):
+        try:
+            print(self.name,"using data for 1 year:")
+            print("Average Daily Return:", self.average,"%")
+            print("Standard Deviation:", self.SD,"%")
+            print("Variance:",self.variance,"%")
+        except Exception as e:
+            print(e)
+
+availableStockObjects = {name: Stock(name=name) for name in availableStockList}
+chosenStockList = []
+
+# Defining the UI for each form #
 
 Ui_MainWindow = uic.loadUiType("MainWindow.ui")[0]
 Ui_StockChooser = uic.loadUiType("StockChooser.ui")[0]
 Ui_StockPerformance = uic.loadUiType("StockPerformance.ui")[0]
 Ui_StockAnalysis = uic.loadUiType("StockAnalysis.ui")[0]
  
+# Main application window #
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -33,13 +90,15 @@ class MainWindow(QMainWindow):
         self.myStockAnalysis = StockAnalysis()
         self.myStockAnalysis.show()      
     
- 
+# Stock Chooser Form #
 
 class StockChooser(QWidget):
     def __init__(self):
         super(StockChooser, self).__init__()
         self.ui = Ui_StockChooser()
         self.ui.setupUi(self)
+        self.ui.saveAndCloseButton.clicked.connect(self.saveAndClose)
+        #Populate the list with available stocks
         for stock in availableStockList:
             item = QListWidgetItem()
             item.setText(stock)
@@ -47,9 +106,15 @@ class StockChooser(QWidget):
             item.setCheckState(QtCore.Qt.Unchecked)
             self.ui.choiceList.addItem(item)
             
-            
-        
-    
+    def saveAndClose(self):
+        chosenStockList = []        
+        for index in range(self.ui.choiceList.count()):
+            if self.ui.choiceList.item(index).checkState() == QtCore.Qt.Checked:            
+               chosenStockList.append(self.ui.choiceList.item(index).text())
+        print(chosenStockList)
+        self.close()              
+ 
+# Stock Performance Form #
 
 class StockPerformance(QWidget):
     def __init__(self):
@@ -57,12 +122,29 @@ class StockPerformance(QWidget):
         self.ui = Ui_StockPerformance()
         self.ui.setupUi(self)
         
+# Stock Analysis Form #
+
 class StockAnalysis(QWidget):
     def __init__(self):
         super(StockAnalysis, self).__init__()
         self.ui = Ui_StockAnalysis()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self)       
+        for stock in availableStockList:
+            item = QListWidgetItem()
+            item.setText(stock)
+            self.ui.analysisChoice.addItem(item)
+        self.ui.analysisChoice.itemClicked.connect(self.stockChose)
         
+    def stockChose(self, item):
+        text = item.text()     
+        ret = str(round(availableStockObjects[text].average[0],6))
+        var = str(round(availableStockObjects[text].variance[0],6))
+        std = str(round(availableStockObjects[text].SD[0],6))
+        self.ui.analysisText.setText("")
+        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%")
+       
+        
+
 
         
 if __name__ == "__main__":

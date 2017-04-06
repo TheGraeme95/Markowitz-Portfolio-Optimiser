@@ -1,10 +1,7 @@
 import numpy
-import os
 import pandas as pd
-import matplotlib
-import matplotlib.pyplot as plt
-from sqlalchemy import create_engine
 import quandl
+import matplotlib as plt
 import cvxopt as cv
 from cvxopt import blas
 
@@ -81,7 +78,6 @@ class Portfolio:
 
     def calcRisk(self):
         self.risk = numpy.sqrt(blas.dot(self.weights, self.covarianceMatrix * self.weights))
-
     
     def displayStocks(self):
         for x in range(len(self.stocks)):
@@ -125,13 +121,10 @@ class Portfolio:
 
     def minVariance(self):
         n = len(self.returns)
-
         P = self.covarianceMatrix
         q = cv.matrix(0.0, (n,1))
-
         G = cv.matrix(-numpy.identity(n))
         h = cv.matrix(0.0,(n,1))
-
         A = cv.matrix(1.0,(1,n))
         b = cv.matrix(1.0)
 
@@ -142,8 +135,7 @@ class Portfolio:
     def maxRet(self):
         n = len(self.returns)
         P = self.covarianceMatrix
-        q = self.average
-        
+        q = self.average        
         G = -cv.matrix(numpy.eye(n))
         h = cv.matrix(0.0, (n,1))
         A = cv.matrix(1.0, (1,n))
@@ -153,14 +145,13 @@ class Portfolio:
         self.weights = solution
     
     def givenRet(self, r_min):
-        n = len(self.returns)
-        
+        n = len(self.returns)        
         P = self.covarianceMatrix
-        q = cv.matrix(numpy.zeros((n, 1)))
+        q = cv.matrix(numpy.zeros((n, 1)))  
         
         G = cv.matrix(numpy.concatenate((
 		-numpy.transpose(numpy.array(self.average)), 
-		-numpy.identity(n)), 0))
+		-numpy.identity(n)), 0))    
         
         h = cv.matrix(numpy.concatenate((
 		-numpy.ones((1,1))*r_min, 
@@ -174,15 +165,13 @@ class Portfolio:
         
     
     def personalPort(self, riskAv):
-        n = len(self.returns)
-        
-        returns = numpy.asmatrix(self.returns)
+        n = len(self.returns)        
+    
         N = 100
         mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
 
         P = self.covarianceMatrix
-        q = self.average
-        
+        q = self.average        
         G = -cv.matrix(numpy.eye(n))
         h = cv.matrix(0.0, (n,1))
         A = cv.matrix(1.0, (1,n))
@@ -234,17 +223,4 @@ def plotRandomPortfolios(n, portfolio):
     plt.ylabel('mean')
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
-portfolio1 = Portfolio(chosenStocks)
-plotRandomPortfolios(20000, portfolio1)
-portfolio1.portPlot()
-portfolio1.displayStocks()
-
-#portfolio1.efficientFrontier()
-
-portfolio1.personalPort(1)
-#portfolio1.minVariance()
-#portfolio1.displayStocks()
-portfolio1.calcReturn()
-portfolio1.calcRisk()
-portfolio1.displayStocks()
-portfolio1.portPlot()
+print(chosenStocks['ibm'].variance)

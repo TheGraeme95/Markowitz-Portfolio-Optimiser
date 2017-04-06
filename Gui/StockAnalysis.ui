@@ -46,7 +46,24 @@
      </widget>
     </item>
     <item>
-     <widget class="QListWidget" name="listWidget"/>
+     <widget class="QListWidget" name="analysisChoice"/>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Daily Stock Statistics</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item alignment="Qt::AlignBottom">
+     <widget class="QTextEdit" name="analysisText">
+      <property name="textInteractionFlags">
+       <set>Qt::NoTextInteraction</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -63,7 +80,7 @@
     <item>
      <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Stock Performance</string>
+       <string>Daily Adjusted Close Price</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -71,27 +88,20 @@
      </widget>
     </item>
     <item>
-     <widget class="QGraphicsView" name="graphicsView"/>
+     <widget class="QGraphicsView" name="adjCloseGraph"/>
     </item>
     <item>
      <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Stock Analytics</string>
+       <string>Daily % Return</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item alignment="Qt::AlignBottom">
-     <widget class="QTextBrowser" name="textBrowser">
-      <property name="minimumSize">
-       <size>
-        <width>589</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
+    <item>
+     <widget class="QGraphicsView" name="returnsGraph"/>
     </item>
    </layout>
   </widget>

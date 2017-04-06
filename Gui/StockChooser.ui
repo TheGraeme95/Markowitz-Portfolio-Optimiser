@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Choose what stocks to add to portfolio</string>
+        <string>Choose What Stocks To Include in the New Portfolio</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -30,7 +30,7 @@
       <widget class="QListWidget" name="choiceList"/>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="saveAndCloseButton">
        <property name="text">
         <string>Save and Close</string>
        </property>
