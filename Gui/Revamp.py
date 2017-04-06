@@ -1,7 +1,8 @@
 import numpy
 import pandas as pd
 import quandl
-import matplotlib as plt
+#import matplotlib as plt
+from matplotlib import pyplot as plt
 import cvxopt as cv
 from cvxopt import blas
 
@@ -223,4 +224,9 @@ def plotRandomPortfolios(n, portfolio):
     plt.ylabel('mean')
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
-print(chosenStocks['ibm'].variance)
+test = Stock('ibm')
+
+print(numpy.array(test.Data['ibm']))
+
+
+

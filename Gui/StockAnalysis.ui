@@ -88,7 +88,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGraphicsView" name="adjCloseGraph"/>
+     <widget class="PlotWidget" name="adjCloseGraph"/>
     </item>
     <item>
      <widget class="QLabel" name="label_3">
@@ -106,6 +106,13 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

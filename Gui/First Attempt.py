@@ -1,8 +1,11 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, qApp, QWidget, QListWidget, QListWidgetItem
 from PyQt5 import uic, QtCore, QtGui
-import pyqtgraph as pg
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+import matplotlib.pyplot as plt
 import numpy
+import pyqtgraph as pg
 import pandas as pd
 import quandl
 import cvxopt as cv
@@ -135,13 +138,48 @@ class StockAnalysis(QWidget):
             self.ui.analysisChoice.addItem(item)
         self.ui.analysisChoice.itemClicked.connect(self.stockChose)
         
+        
+        y = numpy.asarray(availableStockObjects['ibm'].Data, dtype = numpy.float32)
+      
+        print(y)
+        
+        x = range(len(y))
+        print(x)
+        self.ui.adjCloseGraph.plot(x,y)       
+        
+#        fig1 = plt.figure()
+#        ax1f1 = fig1.add_subplot(211)
+#        ax1f1.plot(availableStockObjects['ibm'].Data)
+#        ax1f2 = fig1.add_subplot(212)
+#        ax1f2.plot(availableStockObjects['ibm'].returns)
+#        dpi = fig1.get_dpi()
+#        fig1.set_size_inches(590/float(dpi), 550/float(dpi))
+#        self.createGraph(fig1)      
+#        
+#        
+#    def createGraph(self, figure):
+#        self.canvas = FigureCanvas(figure)        
+#        self.ui.verticalLayout_2.addWidget(self.canvas)       
+#        self.canvas.draw()
+        
+        
+        
+        
+        
     def stockChose(self, item):
+        #Setting analysis text
+        
         text = item.text()     
         ret = str(round(availableStockObjects[text].average[0],6))
         var = str(round(availableStockObjects[text].variance[0],6))
         std = str(round(availableStockObjects[text].SD[0],6))
         self.ui.analysisText.setText("")
         self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%")
+        
+        #Plotting Adjusted Close Graph
+        
+        
+        
        
         
 
