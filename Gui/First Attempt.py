@@ -138,37 +138,26 @@ class StockAnalysis(QWidget):
             self.ui.analysisChoice.addItem(item)
         self.ui.analysisChoice.itemClicked.connect(self.stockChose)
         
-        
-        y = numpy.asarray(availableStockObjects['ibm'].Data, dtype = numpy.float32)
-      
-        print(y)
-        
-        x = range(len(y))
-        print(x)
-        self.ui.adjCloseGraph.plot(x,y)       
-        
-#        fig1 = plt.figure()
-#        ax1f1 = fig1.add_subplot(211)
-#        ax1f1.plot(availableStockObjects['ibm'].Data)
-#        ax1f2 = fig1.add_subplot(212)
-#        ax1f2.plot(availableStockObjects['ibm'].returns)
-#        dpi = fig1.get_dpi()
-#        fig1.set_size_inches(590/float(dpi), 550/float(dpi))
-#        self.createGraph(fig1)      
-#        
-#        
-#    def createGraph(self, figure):
-#        self.canvas = FigureCanvas(figure)        
-#        self.ui.verticalLayout_2.addWidget(self.canvas)       
-#        self.canvas.draw()
-        
-        
-        
+        # Tab Figures for graphs
+        #Figure 1
+        self.figure1 = Figure(tight_layout = True)      
+        self.canvas1 = FigureCanvas(self.figure1)
+        self.toolbar1 = NavigationToolbar(self.canvas1 ,self)
+        self.ui.graphLayout1.addWidget(self.canvas1, 1,0,1,2)
+        self.ui.graphLayout1.addWidget(self.toolbar1, 0,0,1,2)        
+        self.priceGraph = self.figure1.add_subplot(111)        
+       
+        #Figure 2
+        self.figure2 = Figure(tight_layout = True)
+        self.canvas2 = FigureCanvas(self.figure2)
+        self.toolbar2 = NavigationToolbar(self.canvas2, self)
+        self.ui.graphLayout2.addWidget(self.canvas2, 1,0,1,2)
+        self.ui.graphLayout2.addWidget(self.toolbar2, 0,0,1,2)
+        self.returnGraph = self.figure2.add_subplot(111)       
         
         
     def stockChose(self, item):
-        #Setting analysis text
-        
+        #Setting analysis text        
         text = item.text()     
         ret = str(round(availableStockObjects[text].average[0],6))
         var = str(round(availableStockObjects[text].variance[0],6))
@@ -176,7 +165,16 @@ class StockAnalysis(QWidget):
         self.ui.analysisText.setText("")
         self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%")
         
-        #Plotting Adjusted Close Graph
+        #Setting graph plots
+        self.figure1.clf()
+        self.figure2.clf()
+        self.priceGraph = self.figure1.add_subplot(111)
+        self.returnGraph = self.figure2.add_subplot(111)       
+        self.priceGraph.plot(availableStockObjects[text].Data)
+        self.returnGraph.plot(availableStockObjects[text].returns)
+        self.canvas1.draw()
+        self.canvas2.draw()
+       
         
         
         

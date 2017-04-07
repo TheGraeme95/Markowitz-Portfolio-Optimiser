@@ -226,7 +226,7 @@ def plotRandomPortfolios(n, portfolio):
 
 test = Stock('ibm')
 
-print(numpy.array(test.Data['ibm']))
+
 
 
 
