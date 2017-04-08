@@ -29,10 +29,10 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>10</y>
-      <width>471</width>
-      <height>221</height>
+      <x>10</x>
+      <y>200</y>
+      <width>271</width>
+      <height>137</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -47,7 +47,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextBrowser" name="textBrowser_2"/>
+      <widget class="QTextEdit" name="portfolioDetailsText">
+       <property name="textInteractionFlags">
+        <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -56,8 +60,8 @@
      <rect>
       <x>10</x>
       <y>9</y>
-      <width>181</width>
-      <height>221</height>
+      <width>271</width>
+      <height>181</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -78,43 +82,47 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextBrowser" name="textBrowser"/>
+      <widget class="QListWidget" name="portfolioStockList">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
    <widget class="QWidget" name="verticalLayoutWidget_3">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>40</y>
+      <x>10</x>
+      <y>390</y>
       <width>271</width>
-      <height>191</height>
+      <height>181</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_6">
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="minimalRisk">
        <property name="text">
         <string>Optimise for Minimal Risk</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="maximumReturn">
        <property name="text">
         <string>Optimise for Maximum Return</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="specifiedRisk">
        <property name="text">
         <string>Optimise for Specified Risk</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="refreshDisplay">
        <property name="text">
         <string>Refresh Display</string>
        </property>
@@ -125,8 +133,8 @@
    <widget class="QWidget" name="horizontalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>10</y>
+      <x>40</x>
+      <y>350</y>
       <width>203</width>
       <height>31</height>
      </rect>
@@ -140,7 +148,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBox">
+      <widget class="QSpinBox" name="riskAversion">
        <property name="maximum">
         <number>10</number>
        </property>
@@ -151,41 +159,49 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>240</y>
-      <width>961</width>
-      <height>351</height>
+      <x>300</x>
+      <y>10</y>
+      <width>671</width>
+      <height>561</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="0">
-      <widget class="QGraphicsView" name="graphicsView_2"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QGraphicsView" name="graphicsView"/>
-     </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Efficient Frontier</string>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Portfolio Weightings</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
+       <widget class="QWidget" name="graph5">
+        <attribute name="title">
+         <string>Efficient Frontier</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="graphLayout5"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="graph6">
+        <attribute name="title">
+         <string>Portfolio Composition</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="graphLayout6"/>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
    </widget>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>verticalLayoutWidget_2</zorder>
+   <zorder>verticalLayoutWidget_3</zorder>
+   <zorder>horizontalLayoutWidget_2</zorder>
+   <zorder>label_2</zorder>
+   <zorder>label_5</zorder>
+   <zorder>gridLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -214,6 +230,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionGuide"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -250,6 +267,11 @@
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
+   </property>
+  </action>
+  <action name="actionGuide">
+   <property name="text">
+    <string>Guide</string>
    </property>
   </action>
  </widget>

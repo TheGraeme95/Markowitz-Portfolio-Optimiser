@@ -67,19 +67,22 @@ Ui_MainWindow = uic.loadUiType("MainWindow.ui")[0]
 Ui_StockChooser = uic.loadUiType("StockChooser.ui")[0]
 Ui_StockPerformance = uic.loadUiType("StockPerformance.ui")[0]
 Ui_StockAnalysis = uic.loadUiType("StockAnalysis.ui")[0]
+Ui_Guide = uic.loadUiType("Guide.ui")[0]
  
 # Main application window #
 
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)      
         self.ui.actionClose.triggered.connect(qApp.quit)
         self.ui.actionChoose_Stocks.triggered.connect(self.openStockChooser)
         self.ui.actionStock_Performance.triggered.connect(self.openStockPerformance)        
         self.ui.actionStock_Analysis.triggered.connect(self.openStockAnalysis)
-        
+        self.ui.actionGuide.triggered.connect(self.openHelpGuide)
+     
+    # Opening and closing each form.
     
     def openStockChooser(self):
         self.myStockChooser = StockChooser()
@@ -91,12 +94,17 @@ class MainWindow(QMainWindow):
     
     def openStockAnalysis(self):
         self.myStockAnalysis = StockAnalysis()
-        self.myStockAnalysis.show()      
+        self.myStockAnalysis.show()
+        
+    def openHelpGuide(self):
+        self.myHelpGuide = HelpGuide()
+        self.myHelpGuide.show()
+        
     
 # Stock Chooser Form #
 
 class StockChooser(QWidget):
-    def __init__(self):
+    def __init__(self, parent = None):
         super(StockChooser, self).__init__()
         self.ui = Ui_StockChooser()
         self.ui.setupUi(self)
@@ -114,7 +122,11 @@ class StockChooser(QWidget):
         for index in range(self.ui.choiceList.count()):
             if self.ui.choiceList.item(index).checkState() == QtCore.Qt.Checked:            
                chosenStockList.append(self.ui.choiceList.item(index).text())
-        print(chosenStockList)
+        
+        for stock in chosenStockList:
+            item = QListWidgetItem()
+            item.setText(stock)
+            #self.MainWindow.ui.portfolioStockList.addItem(item)
         self.close()              
  
 # Stock Performance Form #
@@ -124,6 +136,32 @@ class StockPerformance(QWidget):
         super(StockPerformance, self).__init__()
         self.ui = Ui_StockPerformance()
         self.ui.setupUi(self)
+        
+        # Figure 3 - All stock's price graph
+        self.figure3 = Figure(tight_layout = True)      
+        self.canvas3 = FigureCanvas(self.figure3)
+        self.toolbar3 = NavigationToolbar(self.canvas3 ,self)
+        self.ui.graphLayout3.addWidget(self.canvas3, 1,0,1,2)
+        self.ui.graphLayout3.addWidget(self.toolbar3, 0,0,1,2)        
+        self.allPriceGraph = self.figure3.add_subplot(111)         
+        self.allPriceGraph.set_xlabel("Date/Time")
+        self.allPriceGraph.set_ylabel("Stock Price")        
+        for stock in availableStockList:
+            self.allPriceGraph.plot(availableStockObjects[stock].Data, label=stock)
+        self.allPriceGraph.legend()
+        
+        # Figure 4 - All stock's risk-return graph
+        self.figure4 = Figure(tight_layout = True)      
+        self.canvas4 = FigureCanvas(self.figure4)
+        self.toolbar4 = NavigationToolbar(self.canvas4 ,self)
+        self.ui.graphLayout4.addWidget(self.canvas4, 1,0,1,2)
+        self.ui.graphLayout4.addWidget(self.toolbar4, 0,0,1,2)        
+        self.riskReturnGraph = self.figure4.add_subplot(111)         
+        self.riskReturnGraph.set_xlabel("Standard Deviation")
+        self.riskReturnGraph.set_ylabel("Average Daily Return %")        
+        for stock in availableStockList:
+            self.riskReturnGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, '*', label=stock)
+        self.riskReturnGraph.legend()      
         
 # Stock Analysis Form #
 
@@ -139,7 +177,7 @@ class StockAnalysis(QWidget):
         self.ui.analysisChoice.itemClicked.connect(self.stockChose)
         
         # Tab Figures for graphs
-        #Figure 1
+        #Figure 1 - Stock Price Graph
         self.figure1 = Figure(tight_layout = True)      
         self.canvas1 = FigureCanvas(self.figure1)
         self.toolbar1 = NavigationToolbar(self.canvas1 ,self)
@@ -149,7 +187,7 @@ class StockAnalysis(QWidget):
         self.priceGraph.set_xlabel("Date/Time")
         self.priceGraph.set_ylabel("Stock Price")
        
-        #Figure 2
+        #Figure 2 - % Returns Graph
         self.figure2 = Figure(tight_layout = True)
         self.canvas2 = FigureCanvas(self.figure2)
         self.toolbar2 = NavigationToolbar(self.canvas2, self)
@@ -176,11 +214,21 @@ class StockAnalysis(QWidget):
         self.returnGraph = self.figure2.add_subplot(111)
         self.priceGraph.set_xlabel("Date/Time")
         self.priceGraph.set_ylabel("Price Change %")
-        self.priceGraph.plot(availableStockObjects[text].Data)
-        self.priceGraph.xticks(rotation=90)
+        self.priceGraph.plot(availableStockObjects[text].Data)        
         self.returnGraph.plot(availableStockObjects[text].returns)
         self.canvas1.draw()
-        self.canvas2.draw()   
+        self.canvas2.draw()
+        
+class HelpGuide(QWidget):
+    def __init__(self):
+        super(HelpGuide, self).__init__()
+        self.ui = Ui_Guide()
+        self.ui.setupUi(self)
+        
+        self.ui.guideText.setText("Before creating a portfolio, you can check the\
+        performance and statistics of the available stocks by going to Menu -> Stocks.\
+        \n\nTo create a portfolio, first choose the stocks that you would like to\
+        include using the Menu: Portfolio -> Choose Stocks.")
 
 
         

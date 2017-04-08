@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>480</height>
+    <width>694</width>
+    <height>547</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -28,17 +28,31 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="0">
-      <widget class="QGraphicsView" name="allStockView"/>
-     </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>All Stocks Statistics</string>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
+       <widget class="QWidget" name="graph3">
+        <attribute name="title">
+         <string>Adj. Close Price</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="graphLayout3"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="graph4">
+        <attribute name="title">
+         <string>Risk-Return</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="graphLayout4"/>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>

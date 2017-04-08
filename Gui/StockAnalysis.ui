@@ -79,8 +79,23 @@
    <layout class="QVBoxLayout" name="graphLayout">
     <item>
      <widget class="QTabWidget" name="tabWidget">
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="graph1">
        <attribute name="title">
@@ -94,7 +109,7 @@
       </widget>
       <widget class="QWidget" name="graph2">
        <attribute name="title">
-        <string>Returns %</string>
+        <string>Daily Returns %</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
