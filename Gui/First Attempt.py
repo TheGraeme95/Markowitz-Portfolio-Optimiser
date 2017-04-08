@@ -145,7 +145,9 @@ class StockAnalysis(QWidget):
         self.toolbar1 = NavigationToolbar(self.canvas1 ,self)
         self.ui.graphLayout1.addWidget(self.canvas1, 1,0,1,2)
         self.ui.graphLayout1.addWidget(self.toolbar1, 0,0,1,2)        
-        self.priceGraph = self.figure1.add_subplot(111)        
+        self.priceGraph = self.figure1.add_subplot(111) 
+        self.priceGraph.set_xlabel("Date/Time")
+        self.priceGraph.set_ylabel("Stock Price")
        
         #Figure 2
         self.figure2 = Figure(tight_layout = True)
@@ -169,17 +171,16 @@ class StockAnalysis(QWidget):
         self.figure1.clf()
         self.figure2.clf()
         self.priceGraph = self.figure1.add_subplot(111)
-        self.returnGraph = self.figure2.add_subplot(111)       
+        self.priceGraph.set_xlabel("Date/Time")
+        self.priceGraph.set_ylabel("Adj. Close $")
+        self.returnGraph = self.figure2.add_subplot(111)
+        self.priceGraph.set_xlabel("Date/Time")
+        self.priceGraph.set_ylabel("Price Change %")
         self.priceGraph.plot(availableStockObjects[text].Data)
+        self.priceGraph.xticks(rotation=90)
         self.returnGraph.plot(availableStockObjects[text].returns)
         self.canvas1.draw()
-        self.canvas2.draw()
-       
-        
-        
-        
-       
-        
+        self.canvas2.draw()   
 
 
         
