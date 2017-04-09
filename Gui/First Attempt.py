@@ -32,6 +32,13 @@ for stock in availableStockList:
     else:
         allData = allData.join(closeHolder, how='outer')
         
+# Defining the UI for each form #
+
+Ui_MainWindow = uic.loadUiType("MainWindow.ui")[0]
+Ui_StockChooser = uic.loadUiType("StockChooser.ui")[0]
+Ui_StockPerformance = uic.loadUiType("StockPerformance.ui")[0]
+Ui_StockAnalysis = uic.loadUiType("StockAnalysis.ui")[0]
+Ui_Guide = uic.loadUiType("Guide.ui")[0]
 
 class Stock:
     def __init__(self,name):
@@ -61,13 +68,140 @@ class Stock:
 availableStockObjects = {name: Stock(name=name) for name in availableStockList}
 chosenStockList = []
 
-# Defining the UI for each form #
 
-Ui_MainWindow = uic.loadUiType("MainWindow.ui")[0]
-Ui_StockChooser = uic.loadUiType("StockChooser.ui")[0]
-Ui_StockPerformance = uic.loadUiType("StockPerformance.ui")[0]
-Ui_StockAnalysis = uic.loadUiType("StockAnalysis.ui")[0]
-Ui_Guide = uic.loadUiType("Guide.ui")[0]
+class Portfolio:
+    def __init__(self, stockList):
+        try:
+            self.stocks = stockList
+            self.stockNames = chosenStockList
+            self.weights = cv.matrix([1.0/len(self.stocks) for stock in self.stocks])
+            my_stocks = pd.DataFrame([])
+            for stock in self.stocks:
+                tempDF = pd.DataFrame(self.stocks[stock].returns)
+                if my_stocks.empty:
+                    my_stocks = tempDF
+                else:
+                    my_stocks = my_stocks.join(tempDF, how='outer')
+            self.returns = my_stocks.T
+            self.covarianceMatrix = cv.matrix(numpy.cov(self.returns))
+            self.average = cv.matrix(numpy.mean(self.returns, axis = 1))
+            self.expectedReturn = blas.dot(self.average, self.weights)
+            self.risk = numpy.sqrt(blas.dot(self.weights, self.covarianceMatrix * self.weights))
+        except Exception as e:
+            print(e)
+
+    def calcReturn(self):
+        self.expectedReturn = blas.dot(self.average, self.weights)
+
+    def calcRisk(self):
+        self.risk = numpy.sqrt(blas.dot(self.weights, self.covarianceMatrix * self.weights))
+    
+    def displayStocks(self):
+        for x in range(len(self.stocks)):
+            print('{0}: {1}'.format(self.stockNames[x], self.weights[x]))
+    
+    def portPlot(self):
+        plt.ylabel('mean')
+        plt.xlabel('std')
+        plt.plot(self.risk, self.expectedReturn, 'r-o')
+
+    def efficientFrontier(self):
+        n = len(self.returns)
+        returns = numpy.asmatrix(self.returns)
+        N = 200
+        mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+
+        S = self.covarianceMatrix
+        pbar = cv.matrix(numpy.mean(returns, axis = 1))
+
+
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+
+        portfolios = [cv.solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
+
+        ## CALCULATE RISKS AND RETURNS FOR FRONTIER
+        returns = [blas.dot(pbar, x) for x in portfolios]
+        risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] 
+        
+        return risks, returns
+        
+
+
+    def minVariance(self):
+        n = len(self.returns)
+        P = self.covarianceMatrix
+        q = cv.matrix(0.0, (n,1))
+        G = cv.matrix(-numpy.identity(n))
+        h = cv.matrix(0.0,(n,1))
+        A = cv.matrix(1.0,(1,n))
+        b = cv.matrix(1.0)
+
+        solution = cv.solvers.qp(P,q,G,h,A,b)['x']
+        self.weights = solution
+        
+     
+    def maxRet(self):
+        n = len(self.returns)
+        P = self.covarianceMatrix
+        q = self.average        
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        solution = cv.solvers.qp(P, -q, G, h, A, b)['x']
+        self.weights = solution
+    
+    def givenRet(self, r_min):
+        n = len(self.returns)        
+        P = self.covarianceMatrix
+        q = cv.matrix(numpy.zeros((n, 1)))  
+        
+        G = cv.matrix(numpy.concatenate((
+		-numpy.transpose(numpy.array(self.average)), 
+		-numpy.identity(n)), 0))    
+        
+        h = cv.matrix(numpy.concatenate((
+		-numpy.ones((1,1))*r_min, 
+		numpy.zeros((n,1))), 0))
+        
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        solution = cv.solvers.qp(P, q, G, h, A, b)['x']
+        self.weights = solution
+        
+    
+    def personalPort(self, riskAv):
+        n = len(self.returns)        
+    
+        N = 100
+        mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+
+        P = self.covarianceMatrix
+        q = self.average        
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        portfolios = [cv.solvers.qp(mu*P, -q, G, h, A, b)['x'] for mu in mus]
+        
+        tempReturns = [blas.dot(q, x) for x in portfolios]
+        tempRisks = [numpy.sqrt(blas.dot(x, P*x)) for x in portfolios]
+        
+        utilitys = []
+        
+        for i, n in enumerate(tempReturns):            
+            utilitys.append((tempReturns[i] - (0.5 * riskAv * tempRisks[i]**2)))
+            
+        maxIndex = utilitys.index(max(utilitys))
+        solution = portfolios[maxIndex]
+        self.weights = solution
+
  
 # Main application window #
 
@@ -81,11 +215,22 @@ class MainWindow(QMainWindow):
         self.ui.actionStock_Performance.triggered.connect(self.openStockPerformance)        
         self.ui.actionStock_Analysis.triggered.connect(self.openStockAnalysis)
         self.ui.actionGuide.triggered.connect(self.openHelpGuide)
+        self.chosenStockObjects = {}
+        
+        # Figure 5 - Efficient Frontier + Individual stocks
+        self.figure5 = Figure(tight_layout = True)      
+        self.canvas5 = FigureCanvas(self.figure5)
+        self.toolbar5 = NavigationToolbar(self.canvas5 ,self)
+        self.ui.graphLayout5.addWidget(self.canvas5, 1,0,1,2)
+        self.ui.graphLayout5.addWidget(self.toolbar5, 0,0,1,2)        
+        self.frontierGraph = self.figure5.add_subplot(111)         
+        self.frontierGraph.set_xlabel("Risk (Standard Deviation) %")
+        self.frontierGraph.set_ylabel("Expected Return %")        
      
     # Opening and closing each form.
     
     def openStockChooser(self):
-        self.myStockChooser = StockChooser()
+        self.myStockChooser = StockChooser(self)
         self.myStockChooser.show()
     
     def openStockPerformance(self):
@@ -100,11 +245,37 @@ class MainWindow(QMainWindow):
         self.myHelpGuide = HelpGuide()
         self.myHelpGuide.show()
         
+    def createPortfolio(self):
+        self.currentPortfolio = Portfolio(self.chosenStockObjects)
+        ret = str(round(self.currentPortfolio.expectedReturn,6))
+        var = str(round(self.currentPortfolio.risk,6))
+        self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
+        \nRisk: "+var+"%")
+        self.plotFrontier()
+    
+    def plotFrontier(self):
+        self.figure5.clf()
+        self.frontierGraph = self.figure5.add_subplot(111)         
+        self.frontierGraph.set_xlabel("Risk (Standard Deviation) %")
+        self.frontierGraph.set_ylabel("Expected Return %")        
+        x, y = self.currentPortfolio.efficientFrontier()
+        self.frontierGraph.plot(x, y, "r-o", label="Efficient Frontier")
+        for stock in self.chosenStockObjects:
+            self.frontierGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, "*" ,label=stock)
+        self.frontierGraph.legend()
+        self.canvas5.draw()
+        
+        
+    
+        
+        
+        
+        
     
 # Stock Chooser Form #
 
 class StockChooser(QWidget):
-    def __init__(self, parent = None):
+    def __init__(self, window):
         super(StockChooser, self).__init__()
         self.ui = Ui_StockChooser()
         self.ui.setupUi(self)
@@ -123,10 +294,13 @@ class StockChooser(QWidget):
             if self.ui.choiceList.item(index).checkState() == QtCore.Qt.Checked:            
                chosenStockList.append(self.ui.choiceList.item(index).text())
         
+        window.ui.portfolioStockList.clear()
         for stock in chosenStockList:
             item = QListWidgetItem()
             item.setText(stock)
-            #self.MainWindow.ui.portfolioStockList.addItem(item)
+            window.ui.portfolioStockList.addItem(item)
+        window.chosenStockObjects = {name: Stock(name=name) for name in chosenStockList}
+        window.createPortfolio()
         self.close()              
  
 # Stock Performance Form #

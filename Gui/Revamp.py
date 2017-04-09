@@ -111,10 +111,10 @@ class Portfolio:
         risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] #np.sqrt returns the stdev, not variance
 
         ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
-        m1 = numpy.polyfit(returns, risks, 2)
-        x1 = (numpy.sqrt(m1[2] / m1[0]))
+        #m1 = numpy.polyfit(returns, risks, 2)
+        #x1 = (numpy.sqrt(m1[2] / m1[0]))
         # CALCULATE THE OPTIMAL PORTFOLIO
-        wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
+        #wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
 
         plt.ylabel('mean')
         plt.xlabel('std')
@@ -224,7 +224,8 @@ def plotRandomPortfolios(n, portfolio):
     plt.ylabel('mean')
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
-test = Stock('ibm')
+chosenPortfolio = Portfolio(chosenStocks)
+chosenPortfolio.efficientFrontier()
 
 
 

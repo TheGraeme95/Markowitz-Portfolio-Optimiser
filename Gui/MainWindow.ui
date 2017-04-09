@@ -49,7 +49,7 @@
      <item>
       <widget class="QTextEdit" name="portfolioDetailsText">
        <property name="textInteractionFlags">
-        <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+        <set>Qt::NoTextInteraction</set>
        </property>
       </widget>
      </item>
@@ -195,13 +195,6 @@
      </item>
     </layout>
    </widget>
-   <zorder>verticalLayoutWidget</zorder>
-   <zorder>verticalLayoutWidget_2</zorder>
-   <zorder>verticalLayoutWidget_3</zorder>
-   <zorder>horizontalLayoutWidget_2</zorder>
-   <zorder>label_2</zorder>
-   <zorder>label_5</zorder>
-   <zorder>gridLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -209,7 +202,7 @@
      <x>0</x>
      <y>0</y>
      <width>980</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPortfolio">
