@@ -98,12 +98,8 @@ class Portfolio:
     
     def displayStocks(self):
         for x in range(len(self.stocks)):
-            print('{0}: {1}'.format(self.stockNames[x], self.weights[x]))
+            print('{0}: {1}'.format(self.stockNames[x], self.weights[x]))    
     
-    def portPlot(self):
-        plt.ylabel('mean')
-        plt.xlabel('std')
-        plt.plot(self.risk, self.expectedReturn, 'r-o')
 
     def efficientFrontier(self):
         n = len(self.returns)
@@ -216,7 +212,7 @@ class MainWindow(QMainWindow):
         self.ui.actionStock_Performance.triggered.connect(self.openStockPerformance)        
         self.ui.actionStock_Analysis.triggered.connect(self.openStockAnalysis)
         self.ui.actionGuide.triggered.connect(self.openHelpGuide)
-                
+        self.chosenStockNames = []
         self.chosenStockObjects = {}
         
         # Figure 5 - Efficient Frontier + Individual stocks
@@ -227,7 +223,13 @@ class MainWindow(QMainWindow):
         self.ui.graphLayout5.addWidget(self.toolbar5, 0,0,1,2)        
         self.frontierGraph = self.figure5.add_subplot(111)         
         self.frontierGraph.set_xlabel("Risk (Standard Deviation) %")
-        self.frontierGraph.set_ylabel("Expected Return %")        
+        self.frontierGraph.set_ylabel("Expected Return %")
+        
+        # Figure 6 - Pie chart containing weights of portfolio
+        self.figure6 = plt.figure()    
+        self.canvas6 = FigureCanvas(self.figure6)
+        self.ui.graphLayout6.addWidget(self.canvas6)
+        self.weightChart = self.figure6.add_subplot(111)     
      
     # Opening and closing each form.
     
@@ -251,6 +253,7 @@ class MainWindow(QMainWindow):
         self.currentPortfolio = Portfolio(self.chosenStockObjects)
         self.statistics()
         self.plotFrontier()
+        self.plotWeights()
         
     def enableOptimise(self):
         self.ui.minimalRisk.clicked.connect(self.minRiskOptimise)
@@ -277,22 +280,37 @@ class MainWindow(QMainWindow):
         ret = str(round(self.currentPortfolio.expectedReturn,6))
         var = str(round(self.currentPortfolio.risk,6))
         self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
-        \nRisk: "+var+"%")        
+        \nRisk: "+var+"%")     
+        
+    def plotWeights(self):
+        self.figure6.clf()
+        self.weightChart = self.figure6.add_subplot(111)
+        weights = []
+        labels = self.chosenStockNames
+        for stock in self.currentPortfolio.weights:            
+            weights.append(stock)       
+        
+        plt.pie(weights, labels = labels, autopct="%1.1f%%")
+        plt.legend()
+        self.canvas6.draw()
         
     def minRiskOptimise(self):        
         self.currentPortfolio.minVariance()                    
         self.statistics()
         self.plotFrontier()
+        self.plotWeights()
         
     def maxRetOptimise(self):
         self.currentPortfolio.maxRet()
         self.statistics()
         self.plotFrontier()
+        self.plotWeights()
         
     def specRiskOptimise(self):
         self.currentPortfolio.personalPort(self.ui.riskAversion.value())
         self.statistics()
-        self.plotFrontier()       
+        self.plotFrontier() 
+        self.plotWeights()
     
 # Stock Chooser Form #
 
@@ -323,6 +341,7 @@ class StockChooser(QWidget):
                 item.setText(stock)
                 window.ui.portfolioStockList.addItem(item)
             window.chosenStockObjects = {name: Stock(name=name) for name in chosenStockList}
+            window.chosenStockNames = chosenStockList
             window.createPortfolio()
             window.enableOptimise()
             self.close()
