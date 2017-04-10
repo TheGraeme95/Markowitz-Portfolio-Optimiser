@@ -209,12 +209,14 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)      
+        self.ui.setupUi(self)       
+    
         self.ui.actionClose.triggered.connect(qApp.quit)
         self.ui.actionChoose_Stocks.triggered.connect(self.openStockChooser)
         self.ui.actionStock_Performance.triggered.connect(self.openStockPerformance)        
         self.ui.actionStock_Analysis.triggered.connect(self.openStockAnalysis)
         self.ui.actionGuide.triggered.connect(self.openHelpGuide)
+                
         self.chosenStockObjects = {}
         
         # Figure 5 - Efficient Frontier + Individual stocks
@@ -247,30 +249,50 @@ class MainWindow(QMainWindow):
         
     def createPortfolio(self):
         self.currentPortfolio = Portfolio(self.chosenStockObjects)
-        ret = str(round(self.currentPortfolio.expectedReturn,6))
-        var = str(round(self.currentPortfolio.risk,6))
-        self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
-        \nRisk: "+var+"%")
+        self.statistics()
         self.plotFrontier()
+        
+    def enableOptimise(self):
+        self.ui.minimalRisk.clicked.connect(self.minRiskOptimise)
+        self.ui.maximumReturn.clicked.connect(self.maxRetOptimise)
+        self.ui.specifiedRisk.clicked.connect(self.specRiskOptimise)
+        
     
     def plotFrontier(self):
         self.figure5.clf()
         self.frontierGraph = self.figure5.add_subplot(111)         
-        self.frontierGraph.set_xlabel("Risk (Standard Deviation) %")
-        self.frontierGraph.set_ylabel("Expected Return %")        
+        self.frontierGraph.set_xlabel("Daily Risk (Standard Deviation) %")
+        self.frontierGraph.set_ylabel("Daily Expected Return %")        
         x, y = self.currentPortfolio.efficientFrontier()
         self.frontierGraph.plot(x, y, "r-o", label="Efficient Frontier")
         for stock in self.chosenStockObjects:
-            self.frontierGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, "*" ,label=stock)
+            self.frontierGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, "s" ,label=stock)
+        self.frontierGraph.plot(self.currentPortfolio.risk, self.currentPortfolio.expectedReturn, "*", color="c",label="Portfolio")
         self.frontierGraph.legend()
         self.canvas5.draw()
+     
+    def statistics(self):
+        self.currentPortfolio.calcReturn()
+        self.currentPortfolio.calcRisk()
+        ret = str(round(self.currentPortfolio.expectedReturn,6))
+        var = str(round(self.currentPortfolio.risk,6))
+        self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
+        \nRisk: "+var+"%")        
         
+    def minRiskOptimise(self):        
+        self.currentPortfolio.minVariance()                    
+        self.statistics()
+        self.plotFrontier()
         
-    
+    def maxRetOptimise(self):
+        self.currentPortfolio.maxRet()
+        self.statistics()
+        self.plotFrontier()
         
-        
-        
-        
+    def specRiskOptimise(self):
+        self.currentPortfolio.personalPort(self.ui.riskAversion.value())
+        self.statistics()
+        self.plotFrontier()       
     
 # Stock Chooser Form #
 
@@ -294,14 +316,18 @@ class StockChooser(QWidget):
             if self.ui.choiceList.item(index).checkState() == QtCore.Qt.Checked:            
                chosenStockList.append(self.ui.choiceList.item(index).text())
         
-        window.ui.portfolioStockList.clear()
-        for stock in chosenStockList:
-            item = QListWidgetItem()
-            item.setText(stock)
-            window.ui.portfolioStockList.addItem(item)
-        window.chosenStockObjects = {name: Stock(name=name) for name in chosenStockList}
-        window.createPortfolio()
-        self.close()              
+        if len(chosenStockList) > 1:
+            window.ui.portfolioStockList.clear()
+            for stock in chosenStockList:
+                item = QListWidgetItem()
+                item.setText(stock)
+                window.ui.portfolioStockList.addItem(item)
+            window.chosenStockObjects = {name: Stock(name=name) for name in chosenStockList}
+            window.createPortfolio()
+            window.enableOptimise()
+            self.close()
+        
+                         
  
 # Stock Performance Form #
 
@@ -403,8 +429,7 @@ class HelpGuide(QWidget):
         performance and statistics of the available stocks by going to Menu -> Stocks.\
         \n\nTo create a portfolio, first choose the stocks that you would like to\
         include using the Menu: Portfolio -> Choose Stocks.")
-
-
+        
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
