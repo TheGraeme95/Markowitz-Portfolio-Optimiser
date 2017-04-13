@@ -15,12 +15,12 @@ cv.solvers.options['show_progress'] = False
 dbSchema = 'Stockdata'
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 token = 'p_qounXgMs57T9nYAurW'
-start = '2015-01-01'
+start = '2016-01-01'
 
 # Initialising all available stock data
 
-#availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
-availableStockList = ['ibm','aapl','msft','googl']
+availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
+#availableStockList = ['ibm','aapl','msft','googl']
 
 allData = pd.DataFrame([])
 for stock in availableStockList:
@@ -31,6 +31,16 @@ for stock in availableStockList:
         allData = closeHolder
     else:
         allData = allData.join(closeHolder, how='outer')
+     
+        
+#Calculating the risk free rate
+riskFreeData = pd.DataFrame(quandl.get("USTREASURY/BILLRATES", start_date="2017-01-11"))
+FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
+tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
+tempReturns = tempReturns.fillna(value = 0)
+returns = tempReturns
+riskFreeRate = numpy.mean(returns)[0]
+
         
 # Defining the UI for each form #
 
@@ -229,7 +239,7 @@ class MainWindow(QMainWindow):
         self.figure6 = plt.figure()    
         self.canvas6 = FigureCanvas(self.figure6)
         self.ui.graphLayout6.addWidget(self.canvas6)
-        self.weightChart = self.figure6.add_subplot(111)     
+            
      
     # Opening and closing each form.
     
@@ -417,12 +427,17 @@ class StockAnalysis(QWidget):
         
     def stockChose(self, item):
         #Setting analysis text        
-        text = item.text()     
+        text = item.text()
+        numRet = availableStockObjects[text].average[0]
+        numStd = availableStockObjects[text].SD[0]
         ret = str(round(availableStockObjects[text].average[0],6))
         var = str(round(availableStockObjects[text].variance[0],6))
         std = str(round(availableStockObjects[text].SD[0],6))
+        sharpe = str(round((numRet - riskFreeRate)/numStd,6))
+        print(sharpe)
         self.ui.analysisText.setText("")
-        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%")
+        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%"\
+                                     +"\n\nSharpe Ratio: " + sharpe)
         
         #Setting graph plots
         self.figure1.clf()

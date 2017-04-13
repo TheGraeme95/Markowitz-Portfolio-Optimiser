@@ -13,7 +13,7 @@ token = 'p_qounXgMs57T9nYAurW'
 start = '2015-01-01'
 
 availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
-tempAvailableStockList = ['ibm', 'aapl', 'msft', 'googl']
+tempAvailableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc']
 
 allData = pd.DataFrame([])
 for stock in tempAvailableStockList:
@@ -87,7 +87,7 @@ class Portfolio:
     def portPlot(self):
         plt.ylabel('mean')
         plt.xlabel('std')
-        plt.plot(self.risk, self.expectedReturn, 'r-o')
+        plt.plot(self.risk, self.expectedReturn, 'o')
 
     def efficientFrontier(self):
         n = len(self.returns)
@@ -111,11 +111,11 @@ class Portfolio:
         risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] #np.sqrt returns the stdev, not variance
 
         ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
-        #m1 = numpy.polyfit(returns, risks, 2)
-        #x1 = (numpy.sqrt(m1[2] / m1[0]))
+        m1 = numpy.polyfit(returns, risks, 2)
+        x1 = (numpy.sqrt(m1[2] / m1[0]))
         # CALCULATE THE OPTIMAL PORTFOLIO
-        #wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
-
+        wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
+        self.weights = wt
         plt.ylabel('mean')
         plt.xlabel('std')
         plt.plot(risks, returns, 'r-o')
@@ -191,7 +191,36 @@ class Portfolio:
         maxIndex = utilitys.index(max(utilitys))
         solution = portfolios[maxIndex]
         self.weights = solution
-              
+    
+    def optimalPort(self):
+       
+        n = len(self.returns)        
+        
+        N = 100
+        mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+        
+        P = self.covarianceMatrix
+        q = self.average        
+        G = -cv.matrix(numpy.eye(n))
+        h = cv.matrix(0.0, (n,1))
+        A = cv.matrix(1.0, (1,n))
+        b = cv.matrix(1.0)
+        
+        portfolios = [cv.solvers.qp(mu*P, -q, G, h, A, b)['x'] for mu in mus]
+        
+        tempReturns = [blas.dot(q, x) for x in portfolios]
+        tempRisks = [numpy.sqrt(blas.dot(x, P*x)) for x in portfolios]
+        
+        utilitys = []
+        
+        for i, n in enumerate(tempReturns):  
+            x = tempReturns[i]/tempRisks[i]
+            utilitys.append(x)
+            print(x)
+         
+        maxIndex = utilitys.index(max(utilitys))
+        solution = portfolios[maxIndex]
+        self.weights = solution
     
     
     
@@ -224,10 +253,25 @@ def plotRandomPortfolios(n, portfolio):
     plt.ylabel('mean')
     plt.title('Mean and standard deviation of returns of randomly generated portfolios')
 
-chosenPortfolio = Portfolio(chosenStocks)
-chosenPortfolio.efficientFrontier()
+#riskFreeData = pd.DataFrame(quandl.get("USTREASURY/BILLRATES", start_date="2017-01-11"))
+#FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
+#print(FreeData)
+#tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
+#tempReturns = tempReturns.fillna(value = 0)
+#returns = tempReturns
+#riskFreeRate = numpy.mean(returns)
 
 
+portfolio1 = Portfolio(chosenStocks)
+print(portfolio1.weights)
+#plotRandomPortfolios(20000, portfolio1)
+portfolio1.efficientFrontier()
+
+portfolio1.optimalPort()
+print(portfolio1.weights)
+portfolio1.calcReturn()
+portfolio1.calcRisk()
+portfolio1.portPlot()
 
 
 
