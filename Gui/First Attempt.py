@@ -39,7 +39,7 @@ FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
 tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
 tempReturns = tempReturns.fillna(value = 0)
 returns = tempReturns
-riskFreeRate = numpy.mean(returns)[0]
+riskFreeRate = numpy.mean(returns)[0]/30.5
 
         
 # Defining the UI for each form #
@@ -236,9 +236,11 @@ class MainWindow(QMainWindow):
         self.frontierGraph.set_ylabel("Expected Return %")
         
         # Figure 6 - Pie chart containing weights of portfolio
-        self.figure6 = plt.figure()    
+        self.figure6 = Figure(tight_layout = True)
+        #self.figure6 = plt.figure()    
         self.canvas6 = FigureCanvas(self.figure6)
         self.ui.graphLayout6.addWidget(self.canvas6)
+        self.weightChart = self.figure6.add_subplot(111)
             
      
     # Opening and closing each form.
@@ -287,10 +289,13 @@ class MainWindow(QMainWindow):
     def statistics(self):
         self.currentPortfolio.calcReturn()
         self.currentPortfolio.calcRisk()
+        tempRet = self.currentPortfolio.expectedReturn
+        tempVar = self.currentPortfolio.risk
         ret = str(round(self.currentPortfolio.expectedReturn,6))
         var = str(round(self.currentPortfolio.risk,6))
+        sharpe = str(round((tempRet - riskFreeRate)/tempVar, 6))
         self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
-        \nRisk: "+var+"%")     
+        \nRisk: "+var+"%"+"\nSharpe Ratio: "+sharpe)     
         
     def plotWeights(self):
         self.figure6.clf()
@@ -300,8 +305,8 @@ class MainWindow(QMainWindow):
         for stock in self.currentPortfolio.weights:            
             weights.append(stock)       
         
-        plt.pie(weights, labels = labels, autopct="%1.1f%%")
-        plt.legend()
+        self.weightChart.pie(weights, labels = labels, autopct="%1.1f%%")
+        self.weightChart.legend()
         self.canvas6.draw()
         
     def minRiskOptimise(self):        
