@@ -31,9 +31,7 @@ def getAllStocks():
     try:
         for stock in stocklist:
             df = quandl.get("WIKI/"+ stock, trim_start = start, trim_end = end, authtoken = token)
-            df['Name'] = stock
-            print(stock)
-            print(df)
+            df['Name'] = stock            
             df.to_sql(stock, con = engine, schema = dbschema, if_exists = 'replace', index = True)
         print("All stock data since ",str(start), " successfully retrieved.")
     except Exception as e:
