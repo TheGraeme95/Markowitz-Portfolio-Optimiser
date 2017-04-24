@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
     def plotFrontier(self):
         self.figure5.clf()
         self.frontierGraph = self.figure5.add_subplot(111)         
-        self.frontierGraph.set_xlabel("Daily Risk (Standard Deviation) %")
+        self.frontierGraph.set_xlabel("Daily Risk (Standard Deviation)")
         self.frontierGraph.set_ylabel("Daily Expected Return %")        
         x, y = self.currentPortfolio.efficientFrontier()
         self.frontierGraph.plot(x, y, "r-o", label="Efficient Frontier")
@@ -441,7 +441,7 @@ class StockAnalysis(QWidget):
         sharpe = str(round((numRet - riskFreeRate)/numStd,6))
         print(sharpe)
         self.ui.analysisText.setText("")
-        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std+"%"\
+        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std\
                                      +"\n\nSharpe Ratio: " + sharpe)
         
         #Setting graph plots
@@ -449,10 +449,10 @@ class StockAnalysis(QWidget):
         self.figure2.clf()
         self.priceGraph = self.figure1.add_subplot(111)
         self.priceGraph.set_xlabel("Date/Time")
-        self.priceGraph.set_ylabel("Adj. Close $")
+        self.priceGraph.set_ylabel("Adj. Close Price $")        
         self.returnGraph = self.figure2.add_subplot(111)
-        self.priceGraph.set_xlabel("Date/Time")
-        self.priceGraph.set_ylabel("Price Change %")
+        self.returnGraph.set_xlabel("Date/Time")
+        self.returnGraph.set_ylabel("Price Change %")        
         self.priceGraph.plot(availableStockObjects[text].Data)        
         self.returnGraph.plot(availableStockObjects[text].returns)
         self.canvas1.draw()
