@@ -95,8 +95,8 @@ class Portfolio:
         N = 100
         mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
 
-        S = self.covarianceMatrix
-        pbar = cv.matrix(numpy.mean(returns, axis = 1))
+        P = self.covarianceMatrix
+        q = cv.matrix(numpy.mean(returns, axis = 1))
 
 
         G = -cv.matrix(numpy.eye(n))
@@ -104,17 +104,17 @@ class Portfolio:
         A = cv.matrix(1.0, (1,n))
         b = cv.matrix(1.0)
 
-        portfolios = [cv.solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
+        portfolios = [cv.solvers.qp(mu*P, -q, G, h, A, b)['x'] for mu in mus]
 
         ## CALCULATE RISKS AND RETURNS FOR FRONTIER
-        returns = [blas.dot(pbar, x) for x in portfolios]
-        risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] #np.sqrt returns the stdev, not variance
+        returns = [blas.dot(q, x) for x in portfolios]
+        risks = [numpy.sqrt(blas.dot(x, P*x)) for x in portfolios] #np.sqrt returns the stdev, not variance
 
         ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
         m1 = numpy.polyfit(returns, risks, 2)
         x1 = (numpy.sqrt(m1[2] / m1[0]))
         # CALCULATE THE OPTIMAL PORTFOLIO
-        wt = cv.solvers.qp(cv.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
+        wt = cv.solvers.qp(cv.matrix(x1 * P), -q, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?
         self.weights = wt
         plt.ylabel('mean')
         plt.xlabel('std')
@@ -263,15 +263,16 @@ def plotRandomPortfolios(n, portfolio):
 
 
 portfolio1 = Portfolio(chosenStocks)
-print(portfolio1.weights)
+#print(portfolio1.weights)
 #plotRandomPortfolios(20000, portfolio1)
-portfolio1.efficientFrontier()
-
-portfolio1.optimalPort()
-print(portfolio1.weights)
-portfolio1.calcReturn()
-portfolio1.calcRisk()
-portfolio1.portPlot()
+#portfolio1.efficientFrontier()
+#
+#portfolio1.optimalPort()
+#print(portfolio1.weights)
+#portfolio1.calcReturn()
+#portfolio1.calcRisk()
+#portfolio1.portPlot()
+print(portfolio1.covarianceMatrix)
 
 
 

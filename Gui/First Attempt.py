@@ -117,20 +117,17 @@ class Portfolio:
         N = 200
         mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
 
-        S = self.covarianceMatrix
-        pbar = cv.matrix(numpy.mean(returns, axis = 1))
-
-
+        P = self.covarianceMatrix
+        q = cv.matrix(numpy.mean(returns, axis = 1))
         G = -cv.matrix(numpy.eye(n))
         h = cv.matrix(0.0, (n,1))
         A = cv.matrix(1.0, (1,n))
         b = cv.matrix(1.0)
 
-        portfolios = [cv.solvers.qp(mu*S, -pbar, G, h, A, b)['x'] for mu in mus]
-
-        ## CALCULATE RISKS AND RETURNS FOR FRONTIER
-        returns = [blas.dot(pbar, x) for x in portfolios]
-        risks = [numpy.sqrt(blas.dot(x, S*x)) for x in portfolios] 
+        portfolios = [cv.solvers.qp(mu*P, -q, G, h, A, b)['x'] for mu in mus]
+        
+        returns = [blas.dot(q, x) for x in portfolios]
+        risks = [numpy.sqrt(blas.dot(x, P*x)) for x in portfolios] 
         
         return risks, returns
         
