@@ -24,8 +24,8 @@ availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc',
 
 allData = pd.DataFrame([])
 for stock in availableStockList:
-    fullHolder = pd.DataFrame(quandl.get("WIKI/"+stock, trim_start = start, authtoken = token))
-    closeHolder = pd.DataFrame(fullHolder['Adj. Close'])
+    fullHolder = pd.DataFrame(quandl.get_table('WIKI/PRICES', date = { 'gte': start }, ticker = stock))
+    closeHolder = pd.DataFrame(fullHolder['adj_close'])
     closeHolder.columns = [stock]
     if allData.empty:
         allData = closeHolder
@@ -34,12 +34,12 @@ for stock in availableStockList:
      
         
 #Calculating the risk free rate
-riskFreeData = pd.DataFrame(quandl.get("USTREASURY/BILLRATES", start_date="2017-01-11"))
-FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
-tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
-tempReturns = tempReturns.fillna(value = 0)
-returns = tempReturns
-riskFreeRate = numpy.mean(returns)[0]/30.5
+#riskFreeData = pd.DataFrame(quandl.get("USTREASURY/BILLRATES", start_date="2017-01-11"))
+#FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
+#tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
+#tempReturns = tempReturns.fillna(value = 0)
+#returns = tempReturns
+#riskFreeRate = numpy.mean(returns)[0]/30.5
 
         
 # Defining the UI for each form #
@@ -285,14 +285,15 @@ class MainWindow(QMainWindow):
      
     def statistics(self):
         self.currentPortfolio.calcReturn()
-        self.currentPortfolio.calcRisk()
-        tempRet = self.currentPortfolio.expectedReturn
-        tempVar = self.currentPortfolio.risk
+        self.currentPortfolio.calcRisk()        
         ret = str(round(self.currentPortfolio.expectedReturn,6))
         var = str(round(self.currentPortfolio.risk,6))
-        sharpe = str(round((tempRet - riskFreeRate)/tempVar, 6))
+        #sharpe = str(round((tempRet - riskFreeRate)/tempVar, 6))
         self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
-        \nRisk: "+var+"%"+"\nSharpe Ratio: "+sharpe)     
+        \nRisk: "+var+"%\n\nWeights:")
+        
+        for i, n in enumerate(self.chosenStockNames):
+            self.ui.portfolioDetailsText.append(self.chosenStockNames[i]+": "+str(round(self.currentPortfolio.weights[i],4)))
         
     def plotWeights(self):
         self.figure6.clf()
@@ -430,16 +431,11 @@ class StockAnalysis(QWidget):
     def stockChose(self, item):
         #Setting analysis text        
         text = item.text()
-        numRet = availableStockObjects[text].average[0]
-        numStd = availableStockObjects[text].SD[0]
         ret = str(round(availableStockObjects[text].average[0],6))
         var = str(round(availableStockObjects[text].variance[0],6))
         std = str(round(availableStockObjects[text].SD[0],6))
-        sharpe = str(round((numRet - riskFreeRate)/numStd,6))
-        print(sharpe)
         self.ui.analysisText.setText("")
-        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std\
-                                     +"\n\nSharpe Ratio: " + sharpe)
+        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std)
         
         #Setting graph plots
         self.figure1.clf()

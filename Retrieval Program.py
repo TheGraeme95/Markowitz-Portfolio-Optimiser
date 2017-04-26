@@ -9,7 +9,7 @@ from datetime import date
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 
 token = 'p_qounXgMs57T9nYAurW'
-start = '2010-01-01'
+start = '2016-01-01'
 
 dbschema = 'Stockdata'
 daily = date.today()
@@ -33,7 +33,7 @@ for stock in stocklist:
         allData = allData.join(closeHolder, how='outer')
 
 
-allData.to_sql("aapl", con = engine, schema = "stockdata", if_exists = 'replace', index=True)
+#allData.to_sql("aapl", con = engine, schema = "stockdata", if_exists = 'replace', index=True)
 
 
 print("done")

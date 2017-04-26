@@ -272,7 +272,7 @@ portfolio1 = Portfolio(chosenStocks)
 #portfolio1.calcReturn()
 #portfolio1.calcRisk()
 #portfolio1.portPlot()
-print(portfolio1.covarianceMatrix)
+portfolio1.efficientFrontier()
 
 
 
