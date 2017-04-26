@@ -286,8 +286,8 @@ class MainWindow(QMainWindow):
     def statistics(self):
         self.currentPortfolio.calcReturn()
         self.currentPortfolio.calcRisk()        
-        ret = str(round(self.currentPortfolio.expectedReturn,6))
-        var = str(round(self.currentPortfolio.risk,6))
+        ret = str(round(self.currentPortfolio.expectedReturn * 100,6))
+        var = str(round(self.currentPortfolio.risk * 100,6))
         #sharpe = str(round((tempRet - riskFreeRate)/tempVar, 6))
         self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
         \nRisk: "+var+"%\n\nWeights:")
@@ -433,9 +433,9 @@ class StockAnalysis(QWidget):
         text = item.text()
         ret = str(round(availableStockObjects[text].average[0],6))
         var = str(round(availableStockObjects[text].variance[0],6))
-        std = str(round(availableStockObjects[text].SD[0],6))
+        std = str(round(availableStockObjects[text].SD[0] ,6))
         self.ui.analysisText.setText("")
-        self.ui.analysisText.setText("Average Return: " +ret+"%"+"\n\nVariance: "+var+"%"+"\n\nStandard Deviation: "+std)
+        self.ui.analysisText.setText("Average Return: " +ret+"\n\nVariance: "+var+"\n\nStandard Deviation: "+std)
         
         #Setting graph plots
         self.figure1.clf()
