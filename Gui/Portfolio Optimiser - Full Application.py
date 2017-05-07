@@ -15,34 +15,23 @@ cv.solvers.options['show_progress'] = False
 dbSchema = 'Stockdata'
 quandl.ApiConfig.api_key = "p_qounXgMs57T9nYAurW"
 token = 'p_qounXgMs57T9nYAurW'
-start = '2016-01-01'
+start = '2015-01-01'
 
 # Initialising all available stock data
 
 availableStockList = ['ibm','aapl','msft','googl', 'fb', 'yhoo', 'csco', 'intc', 'amzn', 'ebay', 'orcl', 'nflx', 'tsla', 'atvi']
-#availableStockList = ['ibm','aapl','msft','googl']
 
 allData = pd.DataFrame([])
 for stock in availableStockList:
     fullHolder = pd.DataFrame(quandl.get_table('WIKI/PRICES', date = { 'gte': start }, ticker = stock))
+    fullHolder.set_index(['date'],inplace=True)
     closeHolder = pd.DataFrame(fullHolder['adj_close'])
     closeHolder.columns = [stock]
     if allData.empty:
         allData = closeHolder
     else:
         allData = allData.join(closeHolder, how='outer')
-     
-        
-#Calculating the risk free rate
-#riskFreeData = pd.DataFrame(quandl.get("USTREASURY/BILLRATES", start_date="2017-01-11"))
-#FreeData = pd.DataFrame(riskFreeData["4 Wk Bank Discount Rate"])
-#tempReturns = FreeData.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
-#tempReturns = tempReturns.fillna(value = 0)
-#returns = tempReturns
-#riskFreeRate = numpy.mean(returns)[0]/30.5
 
-        
-# Defining the UI for each form #
 
 Ui_MainWindow = uic.loadUiType("MainWindow.ui")[0]
 Ui_StockChooser = uic.loadUiType("StockChooser.ui")[0]
@@ -55,11 +44,17 @@ class Stock:
         try:
             self.name = name
             self.Data = pd.DataFrame(allData[name])
-            tempAdj = self.Data
+            tempAdj = self.Data            
             tempReturns = tempAdj.apply(lambda x: numpy.log(x) - numpy.log(x.shift(1)))
             tempReturns = tempReturns.rename(columns = {'Adj. Close' : self.name})
             tempReturns = tempReturns.fillna(value = 0)
             self.returns = tempReturns
+            self.DailyReturn = numpy.mean(self.Data.pct_change(1))
+            self.DailyRisk = numpy.var(self.Data.pct_change(1))
+            self.MonthlyReturn = numpy.mean(self.Data.pct_change(21))
+            self.MonthlyRisk = numpy.var(self.Data.pct_change(21))
+            self.YearlyReturn = numpy.mean(self.Data.pct_change(252))
+            self.YearlyRisk = numpy.var(self.Data.pct_change(252))            
             self.average = numpy.mean(self.returns)
             self.variance = numpy.var(self.returns)
             self.SD = numpy.std(self.returns)
@@ -274,12 +269,12 @@ class MainWindow(QMainWindow):
         self.figure5.clf()
         self.frontierGraph = self.figure5.add_subplot(111)         
         self.frontierGraph.set_xlabel("Daily Risk (Standard Deviation)")
-        self.frontierGraph.set_ylabel("Daily Expected Return %")        
+        self.frontierGraph.set_ylabel("Daily Expected Return")        
         x, y = self.currentPortfolio.efficientFrontier()
         self.frontierGraph.plot(x, y, "r-o", label="Efficient Frontier")
         for stock in self.chosenStockObjects:
-            self.frontierGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, "s" ,label=stock)
-        self.frontierGraph.plot(self.currentPortfolio.risk, self.currentPortfolio.expectedReturn, "*", color="c",label="Portfolio")
+            self.frontierGraph.plot(availableStockObjects[stock].SD, availableStockObjects[stock].average, "s",label=stock)
+        self.frontierGraph.plot(self.currentPortfolio.risk, self.currentPortfolio.expectedReturn, "*", markersize=10, color="c",label="Portfolio")
         self.frontierGraph.legend()
         self.canvas5.draw()
      
@@ -289,7 +284,7 @@ class MainWindow(QMainWindow):
         ret = str(round(self.currentPortfolio.expectedReturn * 100,6))
         var = str(round(self.currentPortfolio.risk * 100,6))
         #sharpe = str(round((tempRet - riskFreeRate)/tempVar, 6))
-        self.ui.portfolioDetailsText.setText("Expected Return: " +ret+"%"+"\
+        self.ui.portfolioDetailsText.setText("Daily Expected Return: " +ret+"%"+"\
         \nRisk: "+var+"%\n\nWeights:")
         
         for i, n in enumerate(self.chosenStockNames):
@@ -431,11 +426,19 @@ class StockAnalysis(QWidget):
     def stockChose(self, item):
         #Setting analysis text        
         text = item.text()
-        ret = str(round(availableStockObjects[text].average[0],6))
-        var = str(round(availableStockObjects[text].variance[0],6))
-        std = str(round(availableStockObjects[text].SD[0] ,6))
+        retDaily = str(round(availableStockObjects[text].DailyReturn[0]*10,6))
+        varDaily = str(round(availableStockObjects[text].DailyRisk[0],6))
+        
+        retMonthly = str(round(availableStockObjects[text].MonthlyReturn[0]*10,6))
+        varMonthly = str(round(availableStockObjects[text].MonthlyRisk[0],6))
+        
+        retYearly = str(round(availableStockObjects[text].YearlyReturn[0]*10,6))
+        varYearly = str(round(availableStockObjects[text].YearlyRisk[0],6))
+      
+        
         self.ui.analysisText.setText("")
-        self.ui.analysisText.setText("Average Return: " +ret+"\n\nVariance: "+var+"\n\nStandard Deviation: "+std)
+        self.ui.analysisText.setText("######## Daily ########\n\nExpected Return: " +retDaily+"%\nVariance: "+varDaily+"\
+        \n\n######## Monthly ########\n\nExpected Return: "+retMonthly+"%\nVariance: "+varMonthly+"\n\n######## Yearly ########\n\nExpected Return: "+retYearly+"%\nVariance: "+varYearly)
         
         #Setting graph plots
         self.figure1.clf()
